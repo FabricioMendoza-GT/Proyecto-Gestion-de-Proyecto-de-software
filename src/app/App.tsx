@@ -195,6 +195,19 @@ export default function App() {
     }
   };
 
+  const handleClearData = () => {
+    // Limpia los valores manteniendo el tamano actual de la matriz.
+    setCosts(costs.map(row => row.map(() => 0)));
+    setSupply(supply.map(() => 0));
+    setDemand(demand.map(() => 0));
+    setSteps([]);
+    setAllocations([]);
+    setTotalCost(0);
+    setCurrentStep(0);
+    setComparisonResults([]);
+    setValidationErrors([]);
+  };
+
   const solve = () => {
     const validation = validateTransportProblem(costs, supply, demand);
     if (!validation.isValid) {
@@ -423,6 +436,7 @@ export default function App() {
                 onAddColumn={handleAddColumn}
                 onRemoveRow={handleRemoveRow}
                 onRemoveColumn={handleRemoveColumn}
+                onClearData={handleClearData}
                 canAddRow={canAddRow}
                 canAddColumn={canAddColumn}
                 rowLimit={methodLimits.maxRows}

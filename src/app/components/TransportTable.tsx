@@ -11,6 +11,7 @@ interface TransportTableProps {
   onAddColumn: () => void;
   onRemoveRow: (index: number) => void;
   onRemoveColumn: (index: number) => void;
+  onClearData: () => void;
   canAddRow?: boolean;
   canAddColumn?: boolean;
   rowLimit?: number;
@@ -30,6 +31,7 @@ export function TransportTable({
   onAddColumn,
   onRemoveRow,
   onRemoveColumn,
+  onClearData,
   canAddRow = true,
   canAddColumn = true,
   rowLimit,
@@ -188,6 +190,13 @@ export function TransportTable({
         >
           <Plus className="w-4 h-4" />
           Añadir Destino
+        </button>
+        <button
+          onClick={onClearData}
+          className="flex items-center gap-2 px-4 py-2 bg-slate-600 text-white rounded-lg hover:bg-slate-700 transition-colors"
+        >
+          <Trash2 className="w-4 h-4" />
+          Limpiar datos
         </button>
       </div>
 

@@ -4,9 +4,9 @@ interface TransportTableProps {
   costs: number[][];
   supply: number[];
   demand: number[];
-  onCostChange: (row: number, col: number, value: number) => void;
-  onSupplyChange: (index: number, value: number) => void;
-  onDemandChange: (index: number, value: number) => void;
+  onCostChange: (row: number, col: number, value: string) => void;
+  onSupplyChange: (index: number, value: string) => void;
+  onDemandChange: (index: number, value: string) => void;
   onAddRow: () => void;
   onAddColumn: () => void;
   onRemoveRow: (index: number) => void;
@@ -48,7 +48,7 @@ export function TransportTable({
 
   return (
     <div className="space-y-4">
-      {/* Balance Status */}
+      {/* Estado del balance: ayuda a ver si oferta y demanda coinciden. */}
       <div className={`px-4 py-3 rounded-lg shadow-sm ${isEffectivelyBalanced ? 'bg-green-50 border-2 border-green-300' : 'bg-amber-50 border-2 border-amber-300'}`}>
         <div className="flex items-center gap-3">
           {isEffectivelyBalanced ? (
@@ -75,7 +75,7 @@ export function TransportTable({
         </div>
       </div>
 
-      {/* Table */}
+      {/* Tabla principal de costos, oferta y demanda. */}
       <div className="overflow-x-auto">
         <table className="w-full border-collapse">
           <thead>
@@ -126,7 +126,7 @@ export function TransportTable({
                       type="number"
                       step="any"
                       value={cost}
-                      onChange={(e) => onCostChange(rowIdx, colIdx, Number(e.target.value))}
+                      onChange={(e) => onCostChange(rowIdx, colIdx, e.target.value)}
                       className={`w-full h-full p-2 text-center border-0 outline-none focus:ring-2 focus:ring-blue-400 ${
                         isCellHighlighted(rowIdx, colIdx) ? 'bg-blue-100' : 'bg-white'
                       }`}
@@ -144,7 +144,7 @@ export function TransportTable({
                     type="number"
                     step="any"
                     value={supply[rowIdx]}
-                    onChange={(e) => onSupplyChange(rowIdx, Number(e.target.value))}
+                    onChange={(e) => onSupplyChange(rowIdx, e.target.value)}
                     className="w-full h-full p-2 text-center bg-blue-50 border-0 outline-none focus:ring-2 focus:ring-blue-400"
                     min="0"
                   />
@@ -159,7 +159,7 @@ export function TransportTable({
                     type="number"
                     step="any"
                     value={d}
-                    onChange={(e) => onDemandChange(idx, Number(e.target.value))}
+                    onChange={(e) => onDemandChange(idx, e.target.value)}
                     className="w-full h-full p-2 text-center bg-green-50 border-0 outline-none focus:ring-2 focus:ring-blue-400"
                     min="0"
                   />
@@ -171,7 +171,7 @@ export function TransportTable({
         </table>
       </div>
 
-      {/* Add Row/Column Buttons */}
+      {/* Acciones para ampliar la matriz respetando los límites definidos. */}
       <div className="flex gap-2">
         <button
           onClick={onAddRow}
@@ -191,6 +191,7 @@ export function TransportTable({
         </button>
       </div>
 
+      {/* Recordatorio del tamaño máximo permitido según el método seleccionado. */}
       <p className="text-xs text-slate-500">
         Límite actual: {rowLimit ?? '-'} orígenes x {columnLimit ?? '-'} destinos según el método seleccionado.
       </p>

@@ -36,7 +36,7 @@ export function MethodSelector({
 
   return (
     <div className="h-full flex flex-col justify-between gap-6">
-      {/* Method Selection - diseño compacto y responsivo para evitar desbordes */}
+      {/* Selección de método: diseño compacto y responsivo para evitar desbordes. */}
       <div className="flex-1">
         <h3 className="mb-3">Seleccionar Método</h3>
         <div className="flex flex-col gap-3">
@@ -63,7 +63,7 @@ export function MethodSelector({
         </div>
       </div>
 
-      {/* Mode Selection */}
+      {/* Selección del modo de solución. */}
       <div>
         <h3 className="mb-3">Modo de Solución</h3>
         <div className="grid grid-cols-1 gap-3">

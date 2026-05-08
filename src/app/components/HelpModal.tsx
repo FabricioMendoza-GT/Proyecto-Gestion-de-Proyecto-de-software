@@ -27,7 +27,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
         </div>
 
         <div className="p-6 space-y-6">
-          {/* Getting Started */}
+          {/* Primeros pasos. */}
           <section>
             <h3 className="flex items-center gap-2 mb-3">
               <Info className="w-5 h-5 text-blue-500" />
@@ -42,7 +42,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             </div>
           </section>
 
-          {/* Methods Explanation */}
+          {/* Explicación de los métodos disponibles. */}
           <section>
             <h3 className="mb-3">Métodos Disponibles</h3>
             <div className="space-y-4">
@@ -78,7 +78,7 @@ export function HelpModal({ isOpen, onClose }: HelpModalProps) {
             </div>
           </section>
 
-          {/* Tips */}
+          {/* Consejos prácticos para usar la herramienta. */}
           <section>
             <h3 className="mb-3">Consejos</h3>
             <ul className="space-y-2 text-sm text-slate-600">

@@ -9,6 +9,13 @@ import { HelpModal } from './components/HelpModal';
 import { HistoryPanel, HistoryEntry } from './components/HistoryPanel';
 import { ResultsCard } from './components/ResultsCard';
 import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from './components/ui/dialog';
+import {
   northwestCorner,
   minimumCost,
   vogelApproximation,
@@ -35,6 +42,7 @@ export default function App() {
   const [showHistory, setShowHistory] = useState(false);
   const [history, setHistory] = useState<HistoryEntry[]>([]);
   const [validationErrors, setValidationErrors] = useState<string[]>([]);
+  const [showValidationModal, setShowValidationModal] = useState(false);
 
   const sanitizeNumber = (value: number) => {
     if (!Number.isFinite(value)) return 0;
@@ -67,7 +75,23 @@ export default function App() {
 
   const methodLimits = getMethodLimits();
 
-  // Load history from localStorage
+  // Cuando hay un mensaje de validación, se muestra un modal temporal y se cierra solo.
+  useEffect(() => {
+    if (validationErrors.length === 0) {
+      setShowValidationModal(false);
+      return;
+    }
+
+    setShowValidationModal(true);
+    const timeoutId = window.setTimeout(() => {
+      setShowValidationModal(false);
+      setValidationErrors([]);
+    }, 4000);
+
+    return () => window.clearTimeout(timeoutId);
+  }, [validationErrors]);
+
+  // Cargar el historial guardado en localStorage al iniciar la aplicación.
   useEffect(() => {
     const savedHistory = localStorage.getItem('transportHistory');
     if (savedHistory) {
@@ -78,7 +102,7 @@ export default function App() {
     }
   }, []);
 
-  // Save to history
+  // Guardar cada solución calculada en el historial local.
   const saveToHistory = (methodName: string, mode: string, cost: number, allocs: number[][]) => {
     const entry: HistoryEntry = {
       id: Date.now().toString(),
@@ -92,33 +116,49 @@ export default function App() {
       demand: demand,
       allocations: allocs,
     };
-    const newHistory = [entry, ...history].slice(0, 20); // Keep last 20
+    const newHistory = [entry, ...history].slice(0, 20); // Mantener solo los últimos 20 registros.
     setHistory(newHistory);
     localStorage.setItem('transportHistory', JSON.stringify(newHistory));
   };
 
-  const handleCostChange = (row: number, col: number, value: number) => {
+  const handleCostChange = (row: number, col: number, value: string) => {
+    if (value.trim().startsWith('-')) {
+      setValidationErrors(['No se permiten números negativos.']);
+      return;
+    }
+
     const newCosts = [...costs];
-    newCosts[row][col] = sanitizeNumber(value);
+    newCosts[row][col] = sanitizeNumber(Number(value));
     setCosts(newCosts);
     setValidationErrors([]);
   };
 
-  const handleSupplyChange = (index: number, value: number) => {
+  const handleSupplyChange = (index: number, value: string) => {
+    if (value.trim().startsWith('-')) {
+      setValidationErrors(['No se permiten números negativos.']);
+      return;
+    }
+
     const newSupply = [...supply];
-    newSupply[index] = sanitizeNumber(value);
+    newSupply[index] = sanitizeNumber(Number(value));
     setSupply(newSupply);
     setValidationErrors([]);
   };
 
-  const handleDemandChange = (index: number, value: number) => {
+  const handleDemandChange = (index: number, value: string) => {
+    if (value.trim().startsWith('-')) {
+      setValidationErrors(['No se permiten números negativos.']);
+      return;
+    }
+
     const newDemand = [...demand];
-    newDemand[index] = sanitizeNumber(value);
+    newDemand[index] = sanitizeNumber(Number(value));
     setDemand(newDemand);
     setValidationErrors([]);
   };
 
   const handleAddRow = () => {
+    // Antes de agregar una fila, se respeta el límite recomendado del método.
     if (costs.length >= methodLimits.maxRows) {
       setValidationErrors([`Para ${getMethodName()} el máximo recomendado es ${methodLimits.maxRows} orígenes.`]);
       return;
@@ -129,6 +169,7 @@ export default function App() {
   };
 
   const handleAddColumn = () => {
+    // Antes de agregar una columna, se respeta el límite recomendado del método.
     if (costs[0].length >= methodLimits.maxCols) {
       setValidationErrors([`Para ${getMethodName()} el máximo recomendado es ${methodLimits.maxCols} destinos.`]);
       return;
@@ -219,6 +260,7 @@ export default function App() {
   };
 
   const handleMatrixSelect = (rows: number, cols: number) => {
+    // La selección rápida de matriz también valida que no exceda el límite permitido.
     if (rows > methodLimits.maxRows || cols > methodLimits.maxCols) {
       setValidationErrors([
         `La matriz seleccionada supera el límite recomendado para ${getMethodName()}: ${methodLimits.maxRows}x${methodLimits.maxCols}.`,
@@ -357,11 +399,11 @@ export default function App() {
           </div>
         </div>
 
-        {/* Results Cards removed as requested: top summary cards hidden to reduce visual clutter */}
+        {/* Se ocultaron las tarjetas resumen superiores para reducir el ruido visual. */}
 
-        {/* Main Content */}
+        {/* Contenido principal */}
         <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
-          {/* Left Column - Input */}
+          {/* Columna izquierda: entrada de datos */}
           <div className="xl:col-span-3 space-y-6">
             <div className="bg-white rounded-xl shadow-md p-6 border border-slate-200">
               <h2 className="mb-4">Configuración del Problema</h2>
@@ -390,22 +432,11 @@ export default function App() {
               />
             </div>
 
-            {validationErrors.length > 0 && (
-              <div className="bg-red-50 border-2 border-red-300 text-red-700 rounded-xl p-4 shadow-sm">
-                <h3 className="text-base mb-2">Errores de validación</h3>
-                <ul className="list-disc list-inside space-y-1 text-sm">
-                  {validationErrors.slice(0, 6).map((error, index) => (
-                    <li key={`${error}-${index}`}>{error}</li>
-                  ))}
-                </ul>
-              </div>
-            )}
-
-            {/* (Los paneles se muestran en el bloque de ancho completo debajo del grid) */}
+            {/* Los paneles de iteración o comparación se muestran debajo de esta cuadrícula. */}
 
           </div>
 
-          {/* Right Column - Controls and Steps */}
+          {/* Columna derecha: controles y pasos */}
           <div className="space-y-6 h-full flex flex-col">
             {showHistory ? (
               <HistoryPanel
@@ -446,7 +477,7 @@ export default function App() {
           </div>
         </div>
 
-        {/* Full-width panels (iteración / comparación) debajo del grid */}
+        {/* Paneles de ancho completo: iteración paso a paso o comparación de métodos. */}
         {selectedMode === 'step-by-step' && steps.length > 0 && (
           <div className="bg-white rounded-xl shadow-md p-6 border border-slate-200">
             <StepByStepPanel
@@ -463,8 +494,19 @@ export default function App() {
           </div>
         )}
 
-        {/* Modals */}
+        {/* Modales */}
         <HelpModal isOpen={showHelp} onClose={() => setShowHelp(false)} />
+        {/* Modal temporal para mostrar errores de validación sin interrumpir el flujo. */}
+        <Dialog open={showValidationModal} onOpenChange={setShowValidationModal}>
+          <DialogContent className="sm:max-w-md border-red-200 bg-white">
+            <DialogHeader>
+              <DialogTitle className="text-red-600">Validación no permitida</DialogTitle>
+              <DialogDescription className="text-slate-600">
+                {validationErrors[0]}
+              </DialogDescription>
+            </DialogHeader>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

@@ -619,6 +619,7 @@ export default function PaginaPrincipal() {
           <section className="bg-card rounded-xl shadow-md p-6 border border-border">
             <PanelPasos
               pasos={pasos}
+              costos={costos}
               pasoActual={pasoActual}
               alCambiarPaso={setPasoActual}
             />

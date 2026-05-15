@@ -33,9 +33,9 @@ export function ModalAyuda({ estaAbierto, alCerrar }: PropsModalAyuda) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
-      <div className="bg-card rounded-xl shadow-2xl max-w-3xl w-full max-h-[90vh] overflow-y-auto">
+      <div className="card max-w-3xl w-full max-h-[90vh] overflow-y-auto">
         {/* ===== ENCABEZADO ===== */}
-        <div className="sticky top-0 bg-card border-b border-border p-6 flex items-center justify-between">
+        <div className="panel-header sticky top-0 bg-card border-b border-border p-6">
           <div className="flex items-center gap-3">
             <div className="p-2 bg-blue-100 rounded-lg">
               <BookOpen className="w-5 h-5 text-blue-600" />
@@ -59,7 +59,7 @@ export function ModalAyuda({ estaAbierto, alCerrar }: PropsModalAyuda) {
               <Info className="w-5 h-5 text-blue-500" />
               Cómo Empezar
             </h3>
-            <div className="bg-blue-50 rounded-lg p-4 space-y-2 text-sm text-foreground">
+            <div className="section-box-light space-y-2 text-sm text-foreground">
               <p><strong>1. Seleccionar tamaño:</strong> Elige un tamaño de matriz predefinido o personalízalo agregando/eliminando filas y columnas.</p>
               <p><strong>2. Ingresar datos:</strong> Completa los costos de transporte, la oferta de cada origen y la demanda de cada destino.</p>
               <p><strong>3. Verificar balance:</strong> Asegúrate que la suma de ofertas sea igual a la suma de demandas.</p>
@@ -136,7 +136,7 @@ export function ModalAyuda({ estaAbierto, alCerrar }: PropsModalAyuda) {
           {/* Sección: Información del Proyecto */}
           <section className="border-t border-border pt-4">
             <h3 className="mb-3 font-medium text-foreground">Información del Proyecto</h3>
-            <div className="bg-muted rounded-lg p-4 text-sm">
+            <div className="section-box-light text-sm">
               <p className="text-muted-foreground mb-2">
                 <strong>Universidad:</strong> Laica Eloy Alfaro de Manabí (ULEAM)
               </p>

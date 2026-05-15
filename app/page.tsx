@@ -487,7 +487,7 @@ export default function PaginaPrincipal() {
     <div className="min-h-screen bg-background p-4 md:p-8">
       <div className="max-w-[1920px] mx-auto space-y-6">
         {/* ===== ENCABEZADO ===== */}
-        <header className="bg-card rounded-xl shadow-lg p-6 border border-border">
+        <header className="panel-banner">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
             {/* Título y descripción */}
             <div className="flex items-center gap-4">
@@ -506,21 +506,21 @@ export default function PaginaPrincipal() {
             <div className="flex flex-wrap gap-2">
               <button
                 onClick={() => setMostrarAyuda(true)}
-                className="flex items-center gap-2 px-4 py-2 border-2 border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-all"
+                className="btn btn-secondary"
               >
                 <HelpCircle className="w-4 h-4" />
                 Ayuda
               </button>
               <button
                 onClick={() => setMostrarHistorial(!mostrarHistorial)}
-                className="flex items-center gap-2 px-4 py-2 border-2 border-blue-300 text-blue-600 rounded-lg hover:bg-blue-50 transition-all"
+                className="btn btn-secondary"
               >
                 <HistoryIcon className="w-4 h-4" />
                 Historial
               </button>
               <button
                 onClick={reiniciar}
-                className="flex items-center gap-2 px-4 py-2 border-2 border-border rounded-lg hover:bg-muted transition-all"
+                className="btn btn-muted"
               >
                 <RotateCcw className="w-4 h-4" />
                 Reiniciar
@@ -528,7 +528,7 @@ export default function PaginaPrincipal() {
               {costoTotal > 0 && (
                 <button
                   onClick={exportarResultados}
-                  className="flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-green-500 to-emerald-500 text-white rounded-lg hover:shadow-lg transition-all"
+                  className="btn btn-success"
                 >
                   <Download className="w-4 h-4" />
                   Exportar
@@ -543,13 +543,13 @@ export default function PaginaPrincipal() {
           {/* Columna izquierda: entrada de datos */}
           <div className="xl:col-span-3 space-y-6">
             {/* Selector de tamaño de matriz */}
-            <section className="bg-card rounded-xl shadow-md p-6 border border-border">
+            <section className="card">
               <h2 className="text-lg font-medium mb-4 text-foreground">Configuración del Problema</h2>
               <SelectorMatriz alSeleccionar={manejarSeleccionMatriz} />
             </section>
 
             {/* Tabla de costos y capacidades */}
-            <section className="bg-card rounded-xl shadow-md p-6 border border-border">
+            <section className="card">
               <h2 className="text-lg font-medium mb-4 text-foreground">Tabla de Costos y Capacidades</h2>
               <TablaCostos
                 costos={costos}
@@ -590,7 +590,7 @@ export default function PaginaPrincipal() {
                 }}
               />
             ) : (
-              <div className="bg-card rounded-xl shadow-md p-6 border border-border flex flex-col justify-between flex-1 min-h-[440px]">
+              <div className="card flex flex-col justify-between flex-1 min-h-[440px]">
                 <div className="flex-1">
                   <SelectorMetodo
                     metodoSeleccionado={metodoSeleccionado}
@@ -602,7 +602,7 @@ export default function PaginaPrincipal() {
                 <div className="mt-4">
                   <button
                     onClick={resolver}
-                    className="w-full py-3 bg-gradient-to-r from-blue-500 to-blue-600 text-white rounded-lg hover:shadow-lg transition-all font-medium"
+                    className="btn btn-primary w-full"
                   >
                     Resolver Problema
                   </button>
@@ -616,7 +616,7 @@ export default function PaginaPrincipal() {
         
         {/* Panel paso a paso */}
         {modoSeleccionado === 'paso-a-paso' && pasos.length > 0 && (
-          <section className="bg-card rounded-xl shadow-md p-6 border border-border">
+          <section className="card">
             <PanelPasos
               pasos={pasos}
               costos={costos}
@@ -628,7 +628,7 @@ export default function PaginaPrincipal() {
 
         {/* Panel de comparación */}
         {modoSeleccionado === 'comparacion' && resultadosComparacion.length > 0 && (
-          <section className="bg-card rounded-xl shadow-md p-6 border border-border">
+          <section className="card">
             <PanelComparacion resultados={resultadosComparacion} />
           </section>
         )}

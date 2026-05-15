@@ -43,11 +43,13 @@ export function PanelComparacion({ resultados }: PropsPanelComparacion) {
   const mejorCosto = resultadosOrdenados[0]?.costo;
 
   return (
-    <div className="bg-card rounded-lg border border-border shadow-md p-6 space-y-6">
+    <div className="panel-action">
       {/* ===== ENCABEZADO ===== */}
-      <div className="flex items-center gap-2">
-        <Activity className="w-5 h-5 text-blue-500" />
-        <h3 className="font-medium text-foreground">Comparación de Métodos</h3>
+      <div className="panel-header">
+        <div className="flex items-center gap-2">
+          <Activity className="w-5 h-5 text-blue-500" />
+          <h3 className="font-medium text-foreground">Comparación de Métodos</h3>
+        </div>
       </div>
 
       {/* ===== LISTA DE RESULTADOS ===== */}
@@ -55,11 +57,7 @@ export function PanelComparacion({ resultados }: PropsPanelComparacion) {
         {resultadosOrdenados.map((resultado, idx) => (
           <div
             key={resultado.metodo}
-            className={`p-5 rounded-xl border-2 transition-all shadow-sm ${
-              resultado.costo === mejorCosto
-                ? 'border-green-400 bg-gradient-to-r from-green-50 to-emerald-50'
-                : 'border-border bg-card hover:border-blue-300'
-            }`}
+            className={`result-card ${resultado.costo === mejorCosto ? 'result-card-winning' : ''}`}
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">

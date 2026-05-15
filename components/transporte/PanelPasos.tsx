@@ -47,7 +47,7 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
   const columnaInactiva = (idx: number) => paso.demandaRestante[idx] <= 0;
 
   return (
-    <div className="bg-card rounded-lg border border-border shadow-md p-6 space-y-4">
+    <div className="panel-action">
       {/* ===== ENCABEZADO CON NAVEGACIÓN ===== */}
       <div className="flex items-center justify-between">
         <div>
@@ -68,7 +68,7 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
           <button
             onClick={() => alCambiarPaso(Math.max(0, pasoActual - 1))}
             disabled={pasoActual === 0}
-            className="p-2 rounded-lg border-2 border-border hover:bg-blue-50 hover:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="icon-btn"
             aria-label="Paso anterior"
           >
             <ChevronLeft className="w-5 h-5" />
@@ -76,7 +76,7 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
           <button
             onClick={() => alCambiarPaso(Math.min(pasos.length - 1, pasoActual + 1))}
             disabled={pasoActual === pasos.length - 1}
-            className="p-2 rounded-lg border-2 border-border hover:bg-blue-50 hover:border-blue-400 disabled:opacity-50 disabled:cursor-not-allowed transition-all"
+            className="icon-btn"
             aria-label="Paso siguiente"
           >
             <ChevronRight className="w-5 h-5" />
@@ -85,7 +85,7 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
       </div>
 
       {/* ===== DESCRIPCIÓN DEL PASO ACTUAL ===== */}
-      <div className="p-4 bg-gradient-to-r from-yellow-50 to-amber-50 rounded-lg border-2 border-yellow-200 shadow-sm">
+      <div className="section-box-light">
         <div className="flex items-start gap-2">
           <div className="flex items-center justify-center w-6 h-6 bg-yellow-400 rounded-full flex-shrink-0 mt-0.5">
             <Play className="w-3 h-3 text-white" />
@@ -97,7 +97,7 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
       {/* ===== OFERTAS Y DEMANDAS RESTANTES ===== */}
       <div className="grid grid-cols-2 gap-4">
         {/* Ofertas restantes */}
-        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+        <div className="section-box-light">
           <h4 className="text-sm font-medium mb-3 flex items-center gap-2 text-blue-800">
             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
             Oferta Restante
@@ -119,7 +119,7 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
         </div>
         
         {/* Demandas restantes */}
-        <div className="bg-green-50 rounded-lg p-4 border border-green-200">
+        <div className="section-box-light">
           <h4 className="text-sm font-medium mb-3 flex items-center gap-2 text-green-800">
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             Demanda Restante
@@ -142,7 +142,7 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
       </div>
 
       {/* ===== MATRIZ DINÁMICA ===== */}
-      <div className="bg-slate-50 rounded-lg p-4 border border-slate-200">
+      <div className="section-box-light">
         <div className="flex flex-col gap-2 mb-3 sm:flex-row sm:items-center sm:justify-between">
           <div>
             <h4 className="text-sm font-medium text-foreground">Matriz de asignaciones</h4>
@@ -153,16 +153,16 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
           </div>
         </div>
 
-        <div className="mb-3 rounded-lg border border-border bg-white/80 p-3 text-sm text-slate-600">
+        <div className="panel-summary">
           <div>Orígenes completados: {paso.ofertaRestante.map((valor, idx) => valor <= 0 ? `O${idx + 1}` : null).filter(Boolean).join(', ') || 'ninguno'}</div>
           <div>Destinos completados: {paso.demandaRestante.map((valor, idx) => valor <= 0 ? `D${idx + 1}` : null).filter(Boolean).join(', ') || 'ninguno'}</div>
         </div>
 
         <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-sm">
+          <table className="table-base">
             <thead>
               <tr>
-                <th className="p-3 border border-border bg-muted text-left text-xs uppercase tracking-wide text-slate-500">Origen / Destino</th>
+                <th className="table-header">Origen / Destino</th>
                 {columnasVisibles.map((columna) => (
                   <th
                     key={columna}
@@ -178,7 +178,7 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
                     </div>
                   </th>
                 ))}
-                <th className="p-3 border border-border bg-blue-50 text-left text-xs uppercase tracking-wide text-blue-800">Oferta</th>
+                <th className="table-cell font-medium bg-blue-50 text-blue-800">Oferta</th>
               </tr>
             </thead>
             <tbody>

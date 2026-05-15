@@ -129,13 +129,13 @@ export function TablaCostos({
       {/* ===== TABLA PRINCIPAL DE COSTOS =====
           Estructura: Costos + Oferta en filas, Demanda en última fila */}
       <div className="overflow-x-auto rounded-lg border border-border">
-        <table className="w-full border-collapse">
+        <table className="table-base">
           {/* Encabezado con destinos */}
           <thead>
             <tr>
-              <th className="p-2 bg-muted border border-border text-sm font-medium"></th>
+              <th className="table-header"></th>
               {demanda.map((_, idx) => (
-                <th key={idx} className="p-2 bg-muted border border-border min-w-[100px]">
+                <th key={idx} className="table-header min-w-[100px]">
                   <div className="flex items-center justify-center gap-1">
                     <span className="text-sm font-medium">D{idx + 1}</span>
                     {/* Botón eliminar columna (solo si hay más de 1) */}
@@ -151,7 +151,7 @@ export function TablaCostos({
                   </div>
                 </th>
               ))}
-              <th className="p-2 bg-blue-100 border border-border text-sm font-medium text-blue-800">
+              <th className="table-cell font-medium bg-blue-100 text-blue-800">
                 Oferta
               </th>
             </tr>
@@ -162,7 +162,7 @@ export function TablaCostos({
             {costos.map((fila, indiceFila) => (
               <tr key={indiceFila}>
                 {/* Etiqueta del origen */}
-                <td className="p-2 bg-muted border border-border">
+                <td className="table-cell bg-muted">
                   <div className="flex items-center justify-center gap-1">
                     <span className="text-sm font-medium">O{indiceFila + 1}</span>
                     {/* Botón eliminar fila (solo si hay más de 1) */}
@@ -212,7 +212,7 @@ export function TablaCostos({
                 ))}
                 
                 {/* Celda de oferta */}
-                <td className="p-0 border border-border bg-blue-50">
+                <td className="table-cell bg-blue-50 p-0">
                   <input
                     type="number"
                     step="any"
@@ -228,7 +228,7 @@ export function TablaCostos({
             
             {/* Fila de demandas */}
             <tr>
-              <td className="p-2 bg-green-100 border border-border text-sm font-medium text-green-800">
+              <td className="table-cell font-medium bg-green-100 text-green-800">
                 Demanda
               </td>
               {demanda.map((d, idx) => (
@@ -256,7 +256,7 @@ export function TablaCostos({
         <button
           onClick={alAgregarFila}
           disabled={!puedeAgregarFila}
-          className="flex items-center gap-2 px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+          className="btn btn-primary disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4" />
           Añadir Origen
@@ -266,7 +266,7 @@ export function TablaCostos({
         <button
           onClick={alAgregarColumna}
           disabled={!puedeAgregarColumna}
-          className="flex items-center gap-2 px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition-colors disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+          className="btn btn-success disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4" />
           Añadir Destino
@@ -275,7 +275,7 @@ export function TablaCostos({
         {/* Limpiar datos */}
         <button
           onClick={alLimpiarDatos}
-          className="flex items-center gap-2 px-4 py-2 bg-secondary text-secondary-foreground rounded-lg hover:bg-secondary/80 transition-colors"
+          className="btn btn-secondary"
         >
           <Trash2 className="w-4 h-4" />
           Limpiar datos

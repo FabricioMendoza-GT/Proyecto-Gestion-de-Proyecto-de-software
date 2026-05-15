@@ -21,8 +21,8 @@
 
 :root {
   /* ===== COLORES BASE ===== */
-  --background: oklch(0.98 0.01 240);        /* Fondo general: azul muy claro */
-  --foreground: oklch(0.20 0.02 250);        /* Texto principal: azul oscuro */
+  --background: oklch(99.224% 0.01685 128.888);        /* Fondo general: azul muy claro */
+  --foreground: oklch(19.153% 0.02734 19.853);        /* Texto principal: azul oscuro */
   
   /* ===== TARJETAS Y CONTENEDORES ===== */
   --card: oklch(1 0 0);                      /* Fondo de tarjetas: blanco */
@@ -143,6 +143,124 @@
   }
   body {
     @apply bg-background text-foreground;
+  }
+}
+
+@layer utilities {
+  .card {
+    @apply bg-card rounded-lg border border-border shadow-md;
+  }
+
+  .card-sm {
+    @apply bg-card rounded-lg border border-border shadow-sm;
+  }
+
+  .panel-action {
+    @apply bg-card rounded-lg border border-border shadow-md p-6 space-y-4;
+  }
+
+  .panel-banner {
+    @apply rounded-xl border border-border bg-card shadow-lg p-6;
+  }
+
+  .panel-header {
+    @apply flex items-center justify-between gap-2;
+  }
+
+  .panel-summary {
+    @apply rounded-lg border border-border bg-white/80 p-4 text-sm text-slate-600;
+  }
+
+  .section-box {
+    @apply rounded-lg border border-border bg-card p-4;
+  }
+
+  .section-box-soft {
+    @apply rounded-lg border border-border bg-muted p-4;
+  }
+
+  .btn {
+    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors;
+  }
+
+  .btn-primary {
+    @apply bg-blue-500 text-white hover:bg-blue-600;
+  }
+
+  .btn-secondary {
+    @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
+  }
+
+  .btn-success {
+    @apply bg-pink-500 text-white hover:bg-pink-600;
+  }
+
+  .btn-danger {
+    @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
+  }
+
+  .btn-muted {
+    @apply bg-muted text-muted-foreground hover:bg-muted/80;
+  }
+
+  .input-base {
+    @apply w-full py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-transparent outline-none bg-background;
+  }
+
+  .table-base {
+    @apply w-full border-collapse text-sm;
+  }
+
+  .table-header {
+    @apply p-3 border border-border bg-muted text-left text-xs uppercase tracking-wide text-slate-500;
+  }
+
+  .table-cell {
+    @apply p-3 border border-border text-slate-700;
+  }
+
+  .table-cell-strong {
+    @apply p-3 border border-border bg-blue-50 text-center text-slate-700;
+  }
+
+  .badge {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold;
+  }
+
+  .badge-success {
+    @apply bg-green-100 text-green-800;
+  }
+
+  .badge-muted {
+    @apply bg-muted text-muted-foreground;
+  }
+
+  .badge-blue {
+    @apply bg-blue-100 text-blue-700;
+  }
+
+  .panel-item {
+    @apply rounded-lg border border-border p-4 bg-card transition-shadow hover:shadow-md;
+  }
+
+  .icon-btn {
+    @apply inline-flex items-center justify-center rounded-lg border border-border p-2 transition-all hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed;
+  }
+
+  .result-card {
+    @apply p-5 rounded-xl border-2 transition-all shadow-sm border-border bg-card hover:border-blue-300;
+  }
+
+  .result-card-winning {
+    @apply border-green-400 bg-gradient-to-r from-green-50 to-emerald-50;
+  }
+
+  .section-box-light {
+    @apply rounded-lg border border-border bg-slate-50 p-4;
+  }
+
+  .text-muted-soft {
+    @apply text-muted-foreground;
   }
 }
 

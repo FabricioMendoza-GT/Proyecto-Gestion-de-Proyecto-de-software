@@ -53,7 +53,7 @@ export function SelectorMatriz({ alSeleccionar }: PropsSelectorMatriz) {
           <button
             key={tamano.etiqueta}
             onClick={() => alSeleccionar(tamano.filas, tamano.columnas)}
-            className="px-4 py-2 bg-card border-2 border-border rounded-lg hover:border-blue-400 hover:bg-blue-50 transition-all text-sm font-medium"
+            className="btn btn-secondary text-sm"
           >
             {tamano.etiqueta}
           </button>

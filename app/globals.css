@@ -7,11 +7,11 @@
    GUÍA DE ESTILOS - MÉTODOS DE TRANSPORTE
    Universidad Laica Eloy Alfaro de Manabí (ULEAM)
    
-   COLORES PRINCIPALES:
-   - Azul primario: #3b82f6 (botones, acentos)
-   - Verde éxito: #22c55e (balanceado, asignaciones)
-   - Ámbar advertencia: #f59e0b (no balanceado)
-   - Rojo error: #ef4444 (validaciones)
+  COLORES PRINCIPALES:
+  - Azul primario: #3b82f6 (Resolver Problema, Ayuda, Historial, acentos y foco visual)
+  - Verde éxito: #22c55e (Añadir Destino, problema balanceado, asignaciones y resultados ganadores)
+  - Ámbar advertencia: #f59e0b (Problema NO balanceado)
+  - Rojo error: #ef4444 (validaciones, eliminar filas/columnas, limpiar historial)
    
    CÓMO CAMBIAR COLORES:
    1. Para cambiar el color primario (azul), modifique --primary
@@ -21,42 +21,42 @@
 
 :root {
   /* ===== COLORES BASE ===== */
-  --background: oklch(99.224% 0.01685 128.888);        /* Fondo general: azul muy claro */
-  --foreground: oklch(19.153% 0.02734 19.853);        /* Texto principal: azul oscuro */
+  --background: oklch(99.224% 0.01685 128.888);        /* Fondo general: toda la página y el lienzo exterior */
+  --foreground: oklch(19.153% 0.02734 19.853);        /* Texto principal: títulos, labels y texto base */
   
   /* ===== TARJETAS Y CONTENEDORES ===== */
-  --card: oklch(1 0 0);                      /* Fondo de tarjetas: blanco */
-  --card-foreground: oklch(0.20 0.02 250);   /* Texto en tarjetas */
+  --card: oklch(1 0 0);                      /* Fondo de tarjetas: Configuración, Tabla, panel lateral y resultados */
+  --card-foreground: oklch(0.20 0.02 250);   /* Texto dentro de tarjetas y paneles */
   
   /* ===== POPOVERS Y MODALES ===== */
-  --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.20 0.02 250);
+  --popover: oklch(1 0 0);                   /* Modales, popovers y capas flotantes */
+  --popover-foreground: oklch(0.20 0.02 250); /* Texto dentro de modales y capas flotantes */
   
   /* ===== COLOR PRIMARIO (AZUL) =====
      Para cambiar el tema principal, modifique estos valores */
-  --primary: oklch(0.55 0.20 250);           /* Azul principal */
-  --primary-foreground: oklch(0.98 0 0);     /* Texto sobre azul */
+  --primary: oklch(0.55 0.20 250);           /* Azul principal: botones Resolver Problema, Ayuda, Historial y acentos interactivos */
+  --primary-foreground: oklch(0.98 0 0);     /* Texto sobre botones azules y chips primarios */
   
   /* ===== COLOR SECUNDARIO (GRIS CLARO) ===== */
-  --secondary: oklch(0.95 0.01 250);
-  --secondary-foreground: oklch(0.25 0.02 250);
+  --secondary: oklch(0.95 0.01 250);         /* Botones secundarios: Limpiar datos, 2×2 a 5×5 y acciones neutrales */
+  --secondary-foreground: oklch(0.25 0.02 250); /* Texto sobre acciones secundarias */
   
   /* ===== ELEMENTOS ATENUADOS ===== */
-  --muted: oklch(0.96 0.01 250);
-  --muted-foreground: oklch(0.50 0.02 250);
+  --muted: oklch(0.96 0.01 250);             /* Fondo suave: celdas atenuadas, chips grises, paneles informativos */
+  --muted-foreground: oklch(0.50 0.02 250);   /* Texto atenuado: ayudas, descripciones y estados inactivos */
   
   /* ===== ACENTOS ===== */
-  --accent: oklch(0.95 0.02 250);
-  --accent-foreground: oklch(0.20 0.02 250);
+  --accent: oklch(0.95 0.02 250);             /* Resaltados suaves: hover de paneles y foco secundario */
+  --accent-foreground: oklch(0.20 0.02 250);  /* Texto sobre acentos suaves */
   
   /* ===== COLORES DE ERROR/DESTRUCTIVO ===== */
-  --destructive: oklch(0.55 0.22 25);
-  --destructive-foreground: oklch(0.98 0 0);
+  --destructive: oklch(0.55 0.22 25);         /* Acciones destructivas: eliminar filas/columnas, historial y validaciones */
+  --destructive-foreground: oklch(0.98 0 0);  /* Texto sobre acciones destructivas */
   
   /* ===== BORDES E INPUTS ===== */
-  --border: oklch(0.90 0.01 250);
-  --input: oklch(0.92 0.01 250);
-  --ring: oklch(0.55 0.20 250);
+  --border: oklch(0.90 0.01 250);             /* Bordes de tarjetas, tablas, botones y campos */
+  --input: oklch(0.92 0.01 250);              /* Base de inputs numéricos y búsqueda */
+  --ring: oklch(0.55 0.20 250);               /* Anillo de foco de inputs y controles interactivos */
   
   /* ===== COLORES PARA GRÁFICOS ===== */
   --chart-1: oklch(0.55 0.20 250);           /* Azul */
@@ -147,86 +147,105 @@
 }
 
 @layer utilities {
+  /* Card base: Configuración del Problema, Tabla de Costos y Capacidades, panel lateral y paneles de resultados */
   .card {
-    @apply bg-card rounded-lg border border-border shadow-md;
+    @apply bg-card rounded-xl border border-border shadow-md;
   }
 
+  /* Card compacta: bloques secundarios reutilizables */
   .card-sm {
-    @apply bg-card rounded-lg border border-border shadow-sm;
+    @apply bg-card rounded-xl border border-border shadow-sm;
   }
 
+  /* Panel lateral principal: Selector de Método, Modo de Solución y botón Resolver Problema */
   .panel-action {
-    @apply bg-card rounded-lg border border-border shadow-md p-6 space-y-4;
+    @apply bg-card rounded-xl border border-border shadow-md p-8 space-y-5;
   }
 
+  /* Banner superior: encabezado con icono, título y acciones globales */
   .panel-banner {
-    @apply rounded-xl border border-border bg-card shadow-lg p-6;
+    @apply rounded-2xl border border-border bg-card shadow-lg p-8;
   }
 
   .panel-header {
     @apply flex items-center justify-between gap-2;
   }
 
+  /* Resumen compacto: usado en PanelPasos para orígenes y destinos completados */
   .panel-summary {
-    @apply rounded-lg border border-border bg-white/80 p-4 text-sm text-slate-600;
+    @apply rounded-xl border border-border bg-white/80 p-5 text-sm text-slate-600;
   }
 
+  /* Secciones internas: cajas de Configuración y Tabla */
   .section-box {
-    @apply rounded-lg border border-border bg-card p-4;
+    @apply rounded-xl border border-border bg-card p-5;
   }
 
+  /* Sección suave: variantes con fondo atenuado para contenido secundario */
   .section-box-soft {
-    @apply rounded-lg border border-border bg-muted p-4;
+    @apply rounded-xl border border-border bg-muted p-5;
   }
 
+  /* Botón base: estructura compartida por Resolver Problema, Ayuda, Historial, Exportar, Cargar y acciones de tabla */
   .btn {
-    @apply inline-flex items-center justify-center gap-2 rounded-lg px-4 py-2 font-medium transition-colors;
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-5 py-2.5 font-medium transition-colors;
   }
 
+  /* Botón azul: Resolver Problema, Ayuda, Historial y acentos principales */
   .btn-primary {
     @apply bg-blue-500 text-white hover:bg-blue-600;
   }
 
+  /* Botón neutro: Limpiar datos, selector de tamaño de matriz y acciones sin énfasis */
   .btn-secondary {
     @apply bg-secondary text-secondary-foreground hover:bg-secondary/80;
   }
 
+  /* Botón verde: Añadir Destino y Exportar */
   .btn-success {
-    @apply bg-pink-500 text-white hover:bg-pink-600;
+    @apply bg-green-500 text-white hover:bg-pink-600;
   }
 
+  /* Botón destructivo: eliminar filas/columnas, limpiar historial y borrar elementos */
   .btn-danger {
     @apply bg-destructive text-destructive-foreground hover:bg-destructive/90;
   }
 
+  /* Botón apagado: reinicio y acciones menos prioritarias */
   .btn-muted {
     @apply bg-muted text-muted-foreground hover:bg-muted/80;
   }
 
+  /* Input estándar: búsqueda del historial y entradas de texto reutilizables */
   .input-base {
-    @apply w-full py-2 border border-border rounded-lg focus:ring-2 focus:ring-primary/50 focus:border-transparent outline-none bg-background;
+    @apply w-full py-3 px-3 border border-border rounded-xl focus:ring-2 focus:ring-primary/50 focus:border-transparent outline-none bg-background;
   }
 
+  /* Tabla principal: matriz de costos, ofertas, demandas y encabezados */
   .table-base {
     @apply w-full border-collapse text-sm;
   }
 
+  /* Encabezado de tabla: destinos D1-Dn y columna Oferta */
   .table-header {
-    @apply p-3 border border-border bg-muted text-left text-xs uppercase tracking-wide text-slate-500;
+    @apply p-4 border border-border bg-muted text-left text-xs uppercase tracking-wide text-slate-500;
   }
 
+  /* Celda base: costos y valores editables de la matriz */
   .table-cell {
-    @apply p-3 border border-border text-slate-700;
+    @apply p-4 border border-border text-slate-700;
   }
 
+  /* Celda resaltada: pasos, foco visual y celdas destacadas */
   .table-cell-strong {
-    @apply p-3 border border-border bg-blue-50 text-center text-slate-700;
+    @apply p-4 border border-border bg-blue-50 text-center text-slate-700;
   }
 
   .badge {
     @apply inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold;
   }
 
+  /* Badge verde: Problema Balanceado, asignaciones y resultados ganadores */
   .badge-success {
     @apply bg-green-100 text-green-800;
   }
@@ -235,28 +254,34 @@
     @apply bg-muted text-muted-foreground;
   }
 
+  /* Badge azul: etiquetas de apoyo y marcadores informativos */
   .badge-blue {
     @apply bg-blue-100 text-blue-700;
   }
 
+  /* Item de panel: entradas del historial y bloques compactos con hover */
   .panel-item {
-    @apply rounded-lg border border-border p-4 bg-card transition-shadow hover:shadow-md;
+    @apply rounded-xl border border-border p-5 bg-card transition-shadow hover:shadow-md;
   }
 
+  /* Botón de icono: navegación de pasos, eliminar y acciones pequeñas */
   .icon-btn {
-    @apply inline-flex items-center justify-center rounded-lg border border-border p-2 transition-all hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed;
+    @apply inline-flex items-center justify-center rounded-xl border border-border p-2.5 transition-all hover:bg-blue-50 disabled:opacity-50 disabled:cursor-not-allowed;
   }
 
+  /* Tarjeta de resultado: cada método en la comparación */
   .result-card {
-    @apply p-5 rounded-xl border-2 transition-all shadow-sm border-border bg-card hover:border-blue-300;
+    @apply p-6 rounded-2xl border-2 transition-all shadow-sm border-border bg-card hover:border-blue-300;
   }
 
+  /* Tarjeta ganadora: método con el menor costo en comparación */
   .result-card-winning {
     @apply border-green-400 bg-gradient-to-r from-green-50 to-emerald-50;
   }
 
+  /* Caja suave: descripciones y bloques de ayuda dentro del panel de pasos */
   .section-box-light {
-    @apply rounded-lg border border-border bg-slate-50 p-4;
+    @apply rounded-xl border border-border bg-slate-50 p-5;
   }
 
   .text-muted-soft {

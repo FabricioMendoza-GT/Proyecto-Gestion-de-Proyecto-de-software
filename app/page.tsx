@@ -484,14 +484,14 @@ export default function PaginaPrincipal() {
      =================================================================== */
 
   return (
-    <div className="min-h-screen bg-background p-4 md:p-8">
-      <div className="max-w-[1920px] mx-auto space-y-6">
+    <div className="min-h-screen bg-background p-5 md:p-10">
+      <div className="max-w-[1920px] mx-auto space-y-8">
         {/* ===== ENCABEZADO ===== */}
         <header className="panel-banner">
-          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
+          <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             {/* Título y descripción */}
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-md">
+            <div className="flex items-center gap-5">
+              <div className="p-4 bg-gradient-to-br from-blue-500 to-blue-600 rounded-2xl shadow-md">
                 <Calculator className="w-7 h-7 text-white" />
               </div>
               <div>
@@ -503,7 +503,7 @@ export default function PaginaPrincipal() {
             </div>
             
             {/* Botones de acción */}
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
               <button
                 onClick={() => setMostrarAyuda(true)}
                 className="btn btn-secondary"
@@ -539,17 +539,17 @@ export default function PaginaPrincipal() {
         </header>
 
         {/* ===== CONTENIDO PRINCIPAL ===== */}
-        <div className="grid grid-cols-1 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 xl:grid-cols-4 gap-8">
           {/* Columna izquierda: entrada de datos */}
-          <div className="xl:col-span-3 space-y-6">
+          <div className="xl:col-span-3 space-y-8">
             {/* Selector de tamaño de matriz */}
-            <section className="card">
+            <section className="card p-6 md:p-7">
               <h2 className="text-lg font-medium mb-4 text-foreground">Configuración del Problema</h2>
               <SelectorMatriz alSeleccionar={manejarSeleccionMatriz} />
             </section>
 
             {/* Tabla de costos y capacidades */}
-            <section className="card">
+            <section className="card p-6 md:p-7">
               <h2 className="text-lg font-medium mb-4 text-foreground">Tabla de Costos y Capacidades</h2>
               <TablaCostos
                 costos={costos}
@@ -574,7 +574,7 @@ export default function PaginaPrincipal() {
           </div>
 
           {/* Columna derecha: controles y panel lateral */}
-          <aside className="space-y-6 h-full flex flex-col">
+          <aside className="space-y-8 h-full flex flex-col">
             {mostrarHistorial ? (
               <PanelHistorial
                 historial={historial}
@@ -590,7 +590,7 @@ export default function PaginaPrincipal() {
                 }}
               />
             ) : (
-              <div className="card flex flex-col justify-between flex-1 min-h-[440px]">
+              <div className="card flex flex-col justify-between flex-1 min-h-[440px] p-6 md:p-7">
                 <div className="flex-1">
                   <SelectorMetodo
                     metodoSeleccionado={metodoSeleccionado}
@@ -599,10 +599,10 @@ export default function PaginaPrincipal() {
                     alCambiarModo={setModoSeleccionado}
                   />
                 </div>
-                <div className="mt-4">
+                <div className="mt-6">
                   <button
                     onClick={resolver}
-                    className="btn btn-primary w-full"
+                    className="btn btn-primary w-full py-3"
                   >
                     Resolver Problema
                   </button>
@@ -616,7 +616,7 @@ export default function PaginaPrincipal() {
         
         {/* Panel paso a paso */}
         {modoSeleccionado === 'paso-a-paso' && pasos.length > 0 && (
-          <section className="card">
+          <section className="card p-6 md:p-7">
             <PanelPasos
               pasos={pasos}
               costos={costos}
@@ -628,7 +628,7 @@ export default function PaginaPrincipal() {
 
         {/* Panel de comparación */}
         {modoSeleccionado === 'comparacion' && resultadosComparacion.length > 0 && (
-          <section className="card">
+          <section className="card p-6 md:p-7">
             <PanelComparacion resultados={resultadosComparacion} />
           </section>
         )}

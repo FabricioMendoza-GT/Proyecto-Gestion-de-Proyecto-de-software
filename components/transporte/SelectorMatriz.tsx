@@ -40,20 +40,20 @@ interface PropsSelectorMatriz {
    ===================================================================== */
 export function SelectorMatriz({ alSeleccionar }: PropsSelectorMatriz) {
   return (
-    <div className="space-y-3">
+    <div className="space-y-4">
       {/* Etiqueta */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="flex items-center gap-2.5 text-sm text-muted-foreground">
         <Grid3x3 className="w-4 h-4" />
         <span>Tamaño de matriz</span>
       </div>
       
       {/* Botones de tamaño */}
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+      <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
         {TAMANOS.map((tamano) => (
           <button
             key={tamano.etiqueta}
             onClick={() => alSeleccionar(tamano.filas, tamano.columnas)}
-            className="btn btn-secondary text-sm"
+            className="btn btn-secondary text-sm px-4 py-3"
           >
             {tamano.etiqueta}
           </button>

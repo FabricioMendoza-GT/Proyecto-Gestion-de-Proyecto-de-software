@@ -49,13 +49,13 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
   return (
     <div className="panel-action">
       {/* ===== ENCABEZADO CON NAVEGACIÓN ===== */}
-      <div className="flex items-center justify-between">
+        <div className="flex items-start justify-between gap-4">
         <div>
-          <h3 className="font-medium text-foreground mb-1">
+            <h3 className="font-medium text-foreground mb-2">
             Iteración {pasoActual + 1} / {pasos.length}
           </h3>
           {/* Barra de progreso */}
-          <div className="w-48 h-2 bg-muted rounded-full overflow-hidden">
+            <div className="w-56 h-2 bg-muted rounded-full overflow-hidden">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-300"
               style={{ width: `${progreso}%` }}
@@ -64,7 +64,7 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
         </div>
         
         {/* Botones de navegación */}
-        <div className="flex gap-2">
+          <div className="flex gap-3">
           <button
             onClick={() => alCambiarPaso(Math.max(0, pasoActual - 1))}
             disabled={pasoActual === 0}
@@ -90,7 +90,7 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
           <div className="flex items-center justify-center w-6 h-6 bg-yellow-400 rounded-full flex-shrink-0 mt-0.5">
             <Play className="w-3 h-3 text-white" />
           </div>
-          <p className="text-sm flex-1 text-foreground">{paso.descripcion}</p>
+            <p className="text-sm leading-relaxed flex-1 text-foreground">{paso.descripcion}</p>
         </div>
       </div>
 
@@ -102,11 +102,11 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
             <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
             Oferta Restante
           </h4>
-          <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
             {paso.ofertaRestante.map((valor, idx) => (
               <div
                 key={idx}
-                className={`px-3 py-1.5 rounded-md text-sm ${
+                  className={`px-3.5 py-2 rounded-lg text-sm ${
                   valor === 0 
                     ? 'bg-muted text-muted-foreground line-through' 
                     : 'bg-blue-200 text-blue-700'
@@ -124,11 +124,11 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
             <div className="w-3 h-3 bg-green-500 rounded-full"></div>
             Demanda Restante
           </h4>
-          <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap gap-3">
             {paso.demandaRestante.map((valor, idx) => (
               <div
                 key={idx}
-                className={`px-3 py-1.5 rounded-md text-sm ${
+                  className={`px-3.5 py-2 rounded-lg text-sm ${
                   valor === 0 
                     ? 'bg-muted text-muted-foreground line-through' 
                     : 'bg-green-200 text-green-700'
@@ -257,7 +257,7 @@ export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPa
         <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
           <div className="flex items-center justify-between">
             <span className="text-sm opacity-90">Costo Acumulado</span>
-            <span className="text-3xl font-bold">${paso.costo.toLocaleString('es-EC')}</span>
+              <span className="text-3xl font-bold leading-none">${paso.costo.toLocaleString('es-EC')}</span>
           </div>
         </div>
       </div>

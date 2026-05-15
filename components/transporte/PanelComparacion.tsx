@@ -46,14 +46,14 @@ export function PanelComparacion({ resultados }: PropsPanelComparacion) {
     <div className="panel-action">
       {/* ===== ENCABEZADO ===== */}
       <div className="panel-header">
-        <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
           <Activity className="w-5 h-5 text-blue-500" />
           <h3 className="font-medium text-foreground">Comparación de Métodos</h3>
         </div>
       </div>
 
       {/* ===== LISTA DE RESULTADOS ===== */}
-      <div className="space-y-3">
+        <div className="space-y-4">
         {resultadosOrdenados.map((resultado, idx) => (
           <div
             key={resultado.metodo}
@@ -63,11 +63,11 @@ export function PanelComparacion({ resultados }: PropsPanelComparacion) {
               <div className="flex items-center gap-3">
                 {/* Indicador de posición o trofeo para el ganador */}
                 {resultado.costo === mejorCosto ? (
-                  <div className="flex items-center justify-center w-10 h-10 bg-green-500 rounded-full shadow-md">
+                    <div className="flex items-center justify-center w-11 h-11 bg-green-500 rounded-full shadow-md">
                     <Trophy className="w-5 h-5 text-white" />
                   </div>
                 ) : (
-                  <div className="flex items-center justify-center w-10 h-10 bg-muted rounded-full text-muted-foreground font-medium">
+                    <div className="flex items-center justify-center w-11 h-11 bg-muted rounded-full text-muted-foreground font-medium">
                     #{idx + 1}
                   </div>
                 )}
@@ -97,7 +97,7 @@ export function PanelComparacion({ resultados }: PropsPanelComparacion) {
                 </div>
                 {/* Mostrar diferencia con el mejor */}
                 {resultado.costo !== mejorCosto && (
-                  <div className="flex items-center justify-end gap-1 mt-1">
+                    <div className="flex items-center justify-end gap-1 mt-2">
                     <TrendingUp className="w-3 h-3 text-orange-500" />
                     <span className="text-xs text-orange-600">
                       +${(resultado.costo - mejorCosto).toLocaleString('es-EC')}
@@ -115,13 +115,13 @@ export function PanelComparacion({ resultados }: PropsPanelComparacion) {
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-green-50 rounded-lg p-4 border border-green-200">
             <span className="text-xs text-green-600 uppercase font-medium">Mejor costo</span>
-            <div className="text-2xl font-bold text-green-700 mt-1">
+              <div className="text-2xl font-bold text-green-700 mt-2 leading-none">
               ${mejorCosto.toLocaleString('es-EC')}
             </div>
           </div>
-          <div className="bg-orange-50 rounded-lg p-4 border border-orange-200">
+            <div className="bg-orange-50 rounded-xl p-5 border border-orange-200">
             <span className="text-xs text-orange-600 uppercase font-medium">Diferencia máxima</span>
-            <div className="text-2xl font-bold text-orange-700 mt-1">
+              <div className="text-2xl font-bold text-orange-700 mt-2 leading-none">
               ${(resultadosOrdenados[resultadosOrdenados.length - 1]?.costo - mejorCosto).toLocaleString('es-EC')}
             </div>
           </div>

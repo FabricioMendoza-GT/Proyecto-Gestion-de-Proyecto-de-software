@@ -71,17 +71,17 @@ export function SelectorMetodo({
   alCambiarModo,
 }: PropsSelectorMetodo) {
   return (
-    <div className="h-full flex flex-col justify-between gap-6">
+    <div className="h-full flex flex-col justify-between gap-8">
       {/* ===== SELECCIÓN DE MÉTODO ===== */}
       <div className="flex-1">
-        <h3 className="text-sm font-medium mb-3 text-foreground">Seleccionar Método</h3>
-        <div className="flex flex-col gap-3">
+        <h3 className="text-sm font-medium mb-4 text-foreground">Seleccionar Método</h3>
+        <div className="flex flex-col gap-4">
           {METODOS.map((metodo) => (
             <button
               key={metodo.id}
               onClick={() => alCambiarMetodo(metodo.id)}
               aria-pressed={metodoSeleccionado === metodo.id}
-              className={`w-full p-3 rounded-lg border-2 transition-all text-left relative flex items-start gap-3 min-h-[60px] ${
+              className={`w-full p-4 rounded-xl border-2 transition-all text-left relative flex items-start gap-4 min-h-[72px] ${
                 metodoSeleccionado === metodo.id
                   ? 'border-blue-500 bg-blue-50 shadow-md'
                   : 'border-border bg-card hover:border-blue-300 hover:shadow-sm'
@@ -89,13 +89,13 @@ export function SelectorMetodo({
             >
               {/* Indicador de selección */}
               {metodoSeleccionado === metodo.id && (
-                <CheckCircle2 className="w-5 h-5 text-blue-500 absolute top-2 right-2" />
+                <CheckCircle2 className="w-5 h-5 text-blue-500 absolute top-3 right-3" />
               )}
               <div className="flex-1">
-                <div className="mb-0.5 text-sm font-medium leading-tight text-foreground">
+                <div className="mb-1 text-sm font-medium leading-snug text-foreground">
                   {metodo.nombre}
                 </div>
-                <p className="text-xs text-muted-foreground leading-snug whitespace-normal">
+                <p className="text-xs text-muted-foreground leading-relaxed whitespace-normal pr-5">
                   {metodo.descripcion}
                 </p>
               </div>
@@ -106,13 +106,13 @@ export function SelectorMetodo({
 
       {/* ===== SELECCIÓN DE MODO ===== */}
       <div>
-        <h3 className="text-sm font-medium mb-3 text-foreground">Modo de Solución</h3>
-        <div className="grid grid-cols-1 gap-3">
+        <h3 className="text-sm font-medium mb-4 text-foreground">Modo de Solución</h3>
+        <div className="grid grid-cols-1 gap-4">
           {/* Modo Paso a Paso */}
           <button
             onClick={() => alCambiarModo('paso-a-paso')}
             aria-pressed={modoSeleccionado === 'paso-a-paso'}
-            className={`w-full p-3 rounded-lg border-2 transition-all text-left relative flex items-start gap-3 min-h-[56px] ${
+            className={`w-full p-4 rounded-xl border-2 transition-all text-left relative flex items-start gap-4 min-h-[72px] ${
               modoSeleccionado === 'paso-a-paso'
                 ? 'border-green-500 bg-green-50 shadow-md'
                 : 'border-border bg-card hover:border-green-300 hover:shadow-sm'
@@ -122,8 +122,8 @@ export function SelectorMetodo({
               <CheckCircle2 className="w-5 h-5 text-green-500 absolute top-3 right-3" />
             )}
             <div className="flex-1">
-              <div className="mb-1 font-medium text-foreground">Paso a Paso</div>
-              <p className="text-xs text-muted-foreground">Ver cada iteración con explicaciones</p>
+              <div className="mb-1 font-medium leading-snug text-foreground">Paso a Paso</div>
+              <p className="text-xs leading-relaxed text-muted-foreground">Ver cada iteración con explicaciones</p>
             </div>
           </button>
           
@@ -131,7 +131,7 @@ export function SelectorMetodo({
           <button
             onClick={() => alCambiarModo('comparacion')}
             aria-pressed={modoSeleccionado === 'comparacion'}
-            className={`w-full p-3 rounded-lg border-2 transition-all text-left relative flex items-start gap-3 min-h-[56px] ${
+            className={`w-full p-4 rounded-xl border-2 transition-all text-left relative flex items-start gap-4 min-h-[72px] ${
               modoSeleccionado === 'comparacion'
                 ? 'border-green-500 bg-green-50 shadow-md'
                 : 'border-border bg-card hover:border-green-300 hover:shadow-sm'
@@ -141,8 +141,8 @@ export function SelectorMetodo({
               <CheckCircle2 className="w-5 h-5 text-green-500 absolute top-3 right-3" />
             )}
             <div className="flex-1">
-              <div className="mb-1 font-medium text-foreground">Comparación</div>
-              <p className="text-xs text-muted-foreground">Comparar todos los métodos</p>
+              <div className="mb-1 font-medium leading-snug text-foreground">Comparación</div>
+              <p className="text-xs leading-relaxed text-muted-foreground">Comparar todos los métodos</p>
             </div>
           </button>
         </div>

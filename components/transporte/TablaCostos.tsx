@@ -91,10 +91,10 @@ export function TablaCostos({
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-5">
       {/* ===== INDICADOR DE BALANCE ===== 
           Muestra si el problema está balanceado (oferta = demanda) */}
-      <div className={`px-4 py-3 rounded-lg shadow-sm ${
+      <div className={`px-6 py-5 rounded-xl shadow-sm ${
         estaBalanceado 
           ? 'bg-green-50 border-2 border-green-300' 
           : 'bg-amber-50 border-2 border-amber-300'
@@ -108,10 +108,10 @@ export function TablaCostos({
             <AlertCircle className="w-8 h-8 text-amber-500" />
           )}
           <div className="flex-1">
-            <div className={`font-medium ${estaBalanceado ? 'text-green-700' : 'text-amber-700'}`}>
+            <div className={`font-medium leading-snug ${estaBalanceado ? 'text-green-700' : 'text-amber-700'}`}>
               {estaBalanceado ? 'Problema Balanceado' : 'Problema NO Balanceado'}
             </div>
-            <div className="text-sm text-muted-foreground">
+            <div className="text-sm leading-relaxed text-muted-foreground">
               {estaBalanceado ? (
                 <>Oferta total = Demanda total = <strong>{totalOferta}</strong></>
               ) : (
@@ -128,7 +128,7 @@ export function TablaCostos({
 
       {/* ===== TABLA PRINCIPAL DE COSTOS =====
           Estructura: Costos + Oferta en filas, Demanda en última fila */}
-      <div className="overflow-x-auto rounded-lg border border-border">
+      <div className="overflow-x-auto rounded-xl border border-border">
         <table className="table-base">
           {/* Encabezado con destinos */}
           <thead>
@@ -136,13 +136,13 @@ export function TablaCostos({
               <th className="table-header"></th>
               {demanda.map((_, idx) => (
                 <th key={idx} className="table-header min-w-[100px]">
-                  <div className="flex items-center justify-center gap-1">
+                  <div className="flex items-center justify-center gap-2 py-1">
                     <span className="text-sm font-medium">D{idx + 1}</span>
                     {/* Botón eliminar columna (solo si hay más de 1) */}
                     {demanda.length > 1 && (
                       <button
                         onClick={() => alEliminarColumna(idx)}
-                        className="p-1 hover:bg-destructive/10 rounded transition-colors"
+                        className="p-1.5 hover:bg-destructive/10 rounded transition-colors"
                         title={`Eliminar destino ${idx + 1}`}
                       >
                         <Trash2 className="w-3 h-3 text-destructive" />
@@ -151,7 +151,7 @@ export function TablaCostos({
                   </div>
                 </th>
               ))}
-              <th className="table-cell font-medium bg-blue-100 text-blue-800">
+              <th className="table-cell font-medium bg-blue-100 text-blue-800 px-4 py-3">
                 Oferta
               </th>
             </tr>
@@ -162,14 +162,14 @@ export function TablaCostos({
             {costos.map((fila, indiceFila) => (
               <tr key={indiceFila}>
                 {/* Etiqueta del origen */}
-                <td className="table-cell bg-muted">
-                  <div className="flex items-center justify-center gap-1">
+                <td className="table-cell bg-muted px-4 py-4">
+                  <div className="flex items-center justify-center gap-2">
                     <span className="text-sm font-medium">O{indiceFila + 1}</span>
                     {/* Botón eliminar fila (solo si hay más de 1) */}
                     {costos.length > 1 && (
                       <button
                         onClick={() => alEliminarFila(indiceFila)}
-                        className="p-1 hover:bg-destructive/10 rounded transition-colors"
+                        className="p-1.5 hover:bg-destructive/10 rounded transition-colors"
                         title={`Eliminar origen ${indiceFila + 1}`}
                       >
                         <Trash2 className="w-3 h-3 text-destructive" />
@@ -182,7 +182,7 @@ export function TablaCostos({
                 {fila.map((costo, indiceColumna) => (
                   <td
                     key={indiceColumna}
-                    className={`p-0 border border-border relative ${
+                      className={`p-0 border border-border relative ${
                       celdaEstaResaltada(indiceFila, indiceColumna) 
                         ? 'bg-blue-100' 
                         : 'bg-card'
@@ -194,7 +194,7 @@ export function TablaCostos({
                       step="any"
                       value={costo}
                       onChange={(e) => alCambiarCosto(indiceFila, indiceColumna, e.target.value)}
-                      className={`w-full h-full p-2 text-center border-0 outline-none focus:ring-2 focus:ring-primary/50 ${
+                      className={`w-full h-full px-3 py-3 text-center border-0 outline-none focus:ring-2 focus:ring-primary/50 ${
                         celdaEstaResaltada(indiceFila, indiceColumna) 
                           ? 'bg-blue-100' 
                           : 'bg-card'
@@ -218,7 +218,7 @@ export function TablaCostos({
                     step="any"
                     value={oferta[indiceFila]}
                     onChange={(e) => alCambiarOferta(indiceFila, e.target.value)}
-                    className="w-full h-full p-2 text-center bg-blue-50 border-0 outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full h-full px-3 py-3 text-center bg-blue-50 border-0 outline-none focus:ring-2 focus:ring-primary/50"
                     min="0"
                     aria-label={`Oferta del origen ${indiceFila + 1}`}
                   />
@@ -228,7 +228,7 @@ export function TablaCostos({
             
             {/* Fila de demandas */}
             <tr>
-              <td className="table-cell font-medium bg-green-100 text-green-800">
+              <td className="table-cell font-medium bg-green-100 text-green-800 px-4 py-3">
                 Demanda
               </td>
               {demanda.map((d, idx) => (
@@ -238,7 +238,7 @@ export function TablaCostos({
                     step="any"
                     value={d}
                     onChange={(e) => alCambiarDemanda(idx, e.target.value)}
-                    className="w-full h-full p-2 text-center bg-green-50 border-0 outline-none focus:ring-2 focus:ring-primary/50"
+                    className="w-full h-full px-3 py-3 text-center bg-green-50 border-0 outline-none focus:ring-2 focus:ring-primary/50"
                     min="0"
                     aria-label={`Demanda del destino ${idx + 1}`}
                   />
@@ -251,12 +251,12 @@ export function TablaCostos({
       </div>
 
       {/* ===== BOTONES DE ACCIÓN ===== */}
-      <div className="flex flex-wrap gap-2">
+      <div className="flex flex-wrap gap-3 pt-2">
         {/* Agregar origen */}
         <button
           onClick={alAgregarFila}
           disabled={!puedeAgregarFila}
-          className="btn btn-primary disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+          className="btn btn-primary px-4 py-2.5 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4" />
           Añadir Origen
@@ -266,7 +266,7 @@ export function TablaCostos({
         <button
           onClick={alAgregarColumna}
           disabled={!puedeAgregarColumna}
-          className="btn btn-success disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
+          className="btn btn-success px-4 py-2.5 disabled:bg-muted disabled:text-muted-foreground disabled:cursor-not-allowed"
         >
           <Plus className="w-4 h-4" />
           Añadir Destino
@@ -275,7 +275,7 @@ export function TablaCostos({
         {/* Limpiar datos */}
         <button
           onClick={alLimpiarDatos}
-          className="btn btn-secondary"
+          className="btn btn-secondary px-4 py-2.5"
         >
           <Trash2 className="w-4 h-4" />
           Limpiar datos

@@ -32,3 +32,6 @@ export { SelectorMatriz } from './SelectorMatriz';
 
 // Modal de ayuda con información de uso
 export { ModalAyuda } from './ModalAyuda';
+
+// Botones para exportar e importar matrices
+export { BotonesExportarImportar } from './BotonesExportarImportar';

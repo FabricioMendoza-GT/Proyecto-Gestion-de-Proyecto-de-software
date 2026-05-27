@@ -35,6 +35,7 @@ import {
   PanelHistorial,
   SelectorMatriz,
   ModalAyuda,
+  BotonesExportarImportar,
 } from '@/components/transporte';
 import type { MetodoTransporte, ModoSolucion, EntradaHistorial } from '@/components/transporte';
 import type { Paso } from '@/lib/algoritmos-transporte';
@@ -47,6 +48,9 @@ import {
   validarProblemaTransporte,
   LIMITES_METODO,
 } from '@/lib/algoritmos-transporte';
+
+// Funciones de gestión de matrices
+import { exportarResultadosPDF } from '@/lib/gestionMatrices';
 
 // Componentes UI de shadcn
 import {
@@ -349,6 +353,32 @@ export default function PaginaPrincipal() {
   };
 
   /**
+   * Importa nuevas matrices desde un archivo
+   */
+  const manejarImportarMatrices = (costosNuevos: number[][], ofertaNueva: number[], demandaNueva: number[]) => {
+    // Validar que las nuevas matrices no superen los límites
+    if (costosNuevos.length > limitesMetodo.maxFilas || costosNuevos[0].length > limitesMetodo.maxColumnas) {
+      setErroresValidacion([
+        `Las matrices importadas superan el límite recomendado para ${obtenerNombreMetodo()}: ${limitesMetodo.maxFilas}×${limitesMetodo.maxColumnas}.`,
+      ]);
+      return;
+    }
+
+    // Actualizar los datos
+    setCostos(costosNuevos);
+    setOferta(ofertaNueva);
+    setDemanda(demandaNueva);
+
+    // Limpiar resultados anteriores
+    setPasos([]);
+    setAsignaciones([]);
+    setCostoTotal(0);
+    setPasoActual(0);
+    setResultadosComparacion([]);
+    setErroresValidacion([]);
+  };
+
+  /**
    * Reinicia la aplicación a los valores iniciales de ejemplo
    */
   const reiniciar = () => {
@@ -368,24 +398,24 @@ export default function PaginaPrincipal() {
   };
 
   /**
-   * Exporta los resultados a un archivo JSON
+   * Exporta los resultados actuales a un archivo PDF
    */
-  const exportarResultados = () => {
-    const datos = {
-      metodo: metodoSeleccionado,
-      modo: modoSeleccionado,
-      costos,
-      oferta,
-      demanda,
-      asignaciones,
-      costoTotal,
-    };
-    const blob = new Blob([JSON.stringify(datos, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const enlace = document.createElement('a');
-    enlace.href = url;
-    enlace.download = 'transporte-resultados.json';
-    enlace.click();
+  const exportarResultados = async () => {
+    try {
+      await exportarResultadosPDF(
+        costos,
+        oferta,
+        demanda,
+        asignaciones,
+        costoTotal,
+        obtenerNombreMetodo(),
+        'resultado-transporte'
+      );
+    } catch (error) {
+      setErroresValidacion([
+        `Error al exportar PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`,
+      ]);
+    }
   };
 
   /* ===================================================================
@@ -525,7 +555,7 @@ export default function PaginaPrincipal() {
                 <RotateCcw className="w-4 h-4" />
                 Reiniciar
               </button>
-              {costoTotal > 0 && (
+              {/* {costoTotal > 0 && (
                 <button
                   onClick={exportarResultados}
                   className="btn btn-success"
@@ -533,7 +563,7 @@ export default function PaginaPrincipal() {
                   <Download className="w-4 h-4" />
                   Exportar
                 </button>
-              )}
+              )} */}
             </div>
           </div>
         </header>
@@ -569,6 +599,18 @@ export default function PaginaPrincipal() {
                 limiteColumnas={limitesMetodo.maxColumnas}
                 celdasResaltadas={celdasResaltadas.map(c => ({ fila: c.fila, columna: c.columna }))}
                 asignaciones={asignacionesActuales}
+              />
+            </section>
+
+            {/* Exportar e importar matrices */}
+            <section className="card p-6 md:p-7">
+              <h2 className="text-lg font-medium mb-4 text-foreground">Gestión de Matrices</h2>
+              <BotonesExportarImportar
+                costos={costos}
+                oferta={oferta}
+                demanda={demanda}
+                alImportar={manejarImportarMatrices}
+                nombreArchivo="matriz-transporte"
               />
             </section>
           </div>

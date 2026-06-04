@@ -75,7 +75,7 @@ export function exportarMatrices(
     demanda,
     informacion,
   };
-
+// cambios
   // Convertir a JSON con formato legible (2 espacios de indentación)
   const jsonString = JSON.stringify(datosMatrices, null, 2);
 

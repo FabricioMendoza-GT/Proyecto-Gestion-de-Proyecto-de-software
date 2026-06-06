@@ -542,6 +542,7 @@ export default function PaginaPrincipal() {
                 Ayuda
               </button>
               <button
+                id="historial-btn"
                 onClick={() => setMostrarHistorial(!mostrarHistorial)}
                 className="btn btn-secondary"
               >
@@ -549,6 +550,7 @@ export default function PaginaPrincipal() {
                 Historial
               </button>
               <button
+                id="reiniciar-btn"
                 onClick={reiniciar}
                 className="btn btn-muted"
               >
@@ -573,8 +575,8 @@ export default function PaginaPrincipal() {
           {/* Columna izquierda: entrada de datos */}
           <div className="xl:col-span-3 space-y-8">
             {/* Selector de tamaño de matriz */}
-            <section className="card p-6 md:p-7">
-              <h2 className="text-lg font-medium mb-4 text-foreground">Configuración del Problema</h2>
+            <section id="tabla" className="card p-6 md:p-7">
+              <h2 className="text-lg font-medium mb-4 text-foreground">Tabla de Costos y Capacidades</h2>
               <SelectorMatriz alSeleccionar={manejarSeleccionMatriz} />
             </section>
 
@@ -616,7 +618,7 @@ export default function PaginaPrincipal() {
           </div>
 
           {/* Columna derecha: controles y panel lateral */}
-          <aside className="space-y-8 h-full flex flex-col">
+          <aside id="metodo" className="space-y-8 h-full flex flex-col">
             {mostrarHistorial ? (
               <PanelHistorial
                 historial={historial}

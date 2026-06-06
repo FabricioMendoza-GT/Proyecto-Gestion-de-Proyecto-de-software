@@ -369,6 +369,22 @@ input[type="number"] {
   opacity: 1;
   text-decoration: underline;
 }
+
+.site-footer__link-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  cursor: pointer;
+  color: inherit;
+  opacity: 0.9;
+  font-size: 0.95rem;
+  text-align: left;
+}
+.site-footer__link-btn:hover {
+  opacity: 1;
+  text-decoration: underline;
+}
+
 .site-footer__bottom {
   display: flex;
   justify-content: space-between;

@@ -1,265 +1,263 @@
-/**
- * =====================================================================
- * COMPONENTE: Panel de Pasos
- * 
- * Muestra la visualización paso a paso de la resolución del problema.
- * Incluye navegación entre pasos, descripción de cada iteración,
- * y visualización de ofertas/demandas restantes.
- * 
- * CÓMO MODIFICAR:
- * - Colores de la barra de progreso: busque bg-gradient-to-r
- * - Estilos de los badges de oferta/demanda: busque bg-blue-* y bg-green-*
- * =====================================================================
- */
 'use client';
 
-import { ChevronLeft, ChevronRight, Play } from 'lucide-react';
+import { CheckCircle2, ChevronDown, CircleHelp, Play } from 'lucide-react';
 import type { Paso } from '@/lib/algoritmos-transporte';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
-/* =====================================================================
-   TIPOS/INTERFACES
-   ===================================================================== */
 interface PropsPanelPasos {
-  /** Lista de todos los pasos de la solución */
   pasos: Paso[];
-  /** Matriz de costos original */
   costos: number[][];
-  /** Índice del paso actualmente visible */
+  origenesFicticios?: number[];
+  destinosFicticios?: number[];
   pasoActual: number;
-  /** Callback al cambiar de paso */
   alCambiarPaso: (paso: number) => void;
 }
 
-/* =====================================================================
-   COMPONENTE PRINCIPAL
-   ===================================================================== */
-export function PanelPasos({ pasos, costos, pasoActual, alCambiarPaso }: PropsPanelPasos) {
-  // No renderizar si no hay pasos
+function estaAgotado(valor: number) {
+  return Math.abs(valor) <= 1e-9;
+}
+
+function formatearNumero(valor: number) {
+  return valor.toLocaleString('es-EC', { maximumFractionDigits: 2 });
+}
+
+function etiquetaOrigen(indice: number, origenesFicticios: number[]) {
+  return `O${indice + 1}${origenesFicticios.includes(indice) ? ' F' : ''}`;
+}
+
+function etiquetaDestino(indice: number, destinosFicticios: number[]) {
+  return `D${indice + 1}${destinosFicticios.includes(indice) ? ' F' : ''}`;
+}
+
+function explicarPaso(paso: Paso, costos: number[][], origenesFicticios: number[], destinosFicticios: number[]) {
+  const celda = paso.celdasResaltadas[0];
+  if (!celda) {
+    return 'En este paso se actualiza el estado de la matriz. Revisa las ofertas y demandas restantes para ver que filas o columnas ya quedaron cerradas.';
+  }
+
+  const asignacion = paso.asignaciones[celda.fila]?.[celda.columna] ?? 0;
+  const costo = costos[celda.fila]?.[celda.columna] ?? 0;
+  const origen = etiquetaOrigen(celda.fila, origenesFicticios);
+  const destino = etiquetaDestino(celda.columna, destinosFicticios);
+  const filaCerrada = estaAgotado(paso.ofertaRestante[celda.fila]);
+  const columnaCerrada = estaAgotado(paso.demandaRestante[celda.columna]);
+  const esFicticio = origenesFicticios.includes(celda.fila) || destinosFicticios.includes(celda.columna);
+  const cierre = [
+    filaCerrada ? `${origen} queda sin oferta restante` : null,
+    columnaCerrada ? `${destino} queda sin demanda restante` : null,
+  ].filter(Boolean).join(' y ');
+
+  return [
+    `Se asignan ${formatearNumero(asignacion)} unidades desde ${origen} hacia ${destino}.`,
+    `El costo usado en esa casilla es ${formatearNumero(costo)}, por eso este paso suma ${formatearNumero(asignacion * costo)} al costo acumulado.`,
+    cierre ? `Despues de asignar, ${cierre}. Las filas o columnas cerradas aparecen con fondo suave y tachado.` : 'Despues de asignar todavia queda oferta y demanda en esa fila o columna.',
+    esFicticio ? 'La etiqueta F indica una fila o columna ficticia creada por el balanceo. Si recibe unidades con costo 0, solo representa sobrante o faltante para cuadrar el modelo.' : null,
+  ].filter(Boolean).join(' ');
+}
+
+export function PanelPasos({
+  pasos,
+  costos,
+  origenesFicticios = [],
+  destinosFicticios = [],
+  pasoActual,
+  alCambiarPaso,
+}: PropsPanelPasos) {
   if (pasos.length === 0) return null;
 
-  const paso = pasos[pasoActual];
   const progreso = ((pasoActual + 1) / pasos.length) * 100;
-
-  const filasVisibles = paso.ofertaRestante.map((_, idx) => idx);
-  const columnasVisibles = paso.demandaRestante.map((_, idx) => idx);
-
-  const filaInactiva = (idx: number) => paso.ofertaRestante[idx] <= 0;
-  const columnaInactiva = (idx: number) => paso.demandaRestante[idx] <= 0;
 
   return (
     <div className="panel-action">
-      {/* ===== ENCABEZADO CON NAVEGACIÓN ===== */}
-        <div className="flex items-start justify-between gap-4">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
-            <h3 className="font-medium text-foreground mb-2">
-            Iteración {pasoActual + 1} / {pasos.length}
-          </h3>
-          {/* Barra de progreso */}
-            <div className="w-56 h-2 bg-muted rounded-full overflow-hidden">
+          <div className="flex items-center gap-3">
+            <Play className="w-5 h-5 text-blue-500" />
+            <h3 className="font-medium text-foreground">
+              Desarrollo paso a paso
+            </h3>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            {pasos.length} iteracion{pasos.length === 1 ? '' : 'es'} generada{pasos.length === 1 ? '' : 's'} por el metodo seleccionado.
+          </p>
+        </div>
+
+        <div className="min-w-[220px]">
+          <div className="mb-2 flex items-center justify-between text-xs text-muted-foreground">
+            <span>Paso activo</span>
+            <span>{pasoActual + 1} / {pasos.length}</span>
+          </div>
+          <div className="h-2 overflow-hidden rounded-full bg-muted">
             <div
               className="h-full bg-gradient-to-r from-blue-500 to-green-500 transition-all duration-300"
               style={{ width: `${progreso}%` }}
             />
           </div>
         </div>
-        
-        {/* Botones de navegación */}
-          <div className="flex gap-3">
-          <button
-            onClick={() => alCambiarPaso(Math.max(0, pasoActual - 1))}
-            disabled={pasoActual === 0}
-            className="icon-btn"
-            aria-label="Paso anterior"
-          >
-            <ChevronLeft className="w-5 h-5" />
-          </button>
-          <button
-            onClick={() => alCambiarPaso(Math.min(pasos.length - 1, pasoActual + 1))}
-            disabled={pasoActual === pasos.length - 1}
-            className="icon-btn"
-            aria-label="Paso siguiente"
-          >
-            <ChevronRight className="w-5 h-5" />
-          </button>
-        </div>
       </div>
 
-      {/* ===== DESCRIPCIÓN DEL PASO ACTUAL ===== */}
-      <div className="section-box-light">
-        <div className="flex items-start gap-2">
-          <div className="flex items-center justify-center w-6 h-6 bg-yellow-400 rounded-full flex-shrink-0 mt-0.5">
-            <Play className="w-3 h-3 text-white" />
-          </div>
-            <p className="text-sm leading-relaxed flex-1 text-foreground">{paso.descripcion}</p>
-        </div>
-      </div>
+      <div className="grid grid-cols-1 gap-4">
+        {pasos.map((paso, indicePaso) => {
+          const abierto = indicePaso === pasoActual;
+          const origenesAgotados = paso.ofertaRestante
+            .map((valor, idx) => (estaAgotado(valor) ? etiquetaOrigen(idx, origenesFicticios) : null))
+            .filter(Boolean)
+            .join(', ');
+          const destinosAgotados = paso.demandaRestante
+            .map((valor, idx) => (estaAgotado(valor) ? etiquetaDestino(idx, destinosFicticios) : null))
+            .filter(Boolean)
+            .join(', ');
+          const explicacion = explicarPaso(paso, costos, origenesFicticios, destinosFicticios);
 
-      {/* ===== OFERTAS Y DEMANDAS RESTANTES ===== */}
-      <div className="grid grid-cols-2 gap-4">
-        {/* Ofertas restantes */}
-        <div className="section-box-light">
-          <h4 className="text-sm font-medium mb-3 flex items-center gap-2 text-blue-800">
-            <div className="w-3 h-3 bg-blue-500 rounded-full"></div>
-            Oferta Restante
-          </h4>
-            <div className="flex flex-wrap gap-3">
-            {paso.ofertaRestante.map((valor, idx) => (
-              <div
-                key={idx}
-                  className={`px-3.5 py-2 rounded-lg text-sm ${
-                  valor === 0 
-                    ? 'bg-muted text-muted-foreground line-through' 
-                    : 'bg-blue-200 text-blue-700'
-                }`}
-              >
-                O{idx + 1}: {valor}
-              </div>
-            ))}
-          </div>
-        </div>
-        
-        {/* Demandas restantes */}
-        <div className="section-box-light">
-          <h4 className="text-sm font-medium mb-3 flex items-center gap-2 text-green-800">
-            <div className="w-3 h-3 bg-green-500 rounded-full"></div>
-            Demanda Restante
-          </h4>
-            <div className="flex flex-wrap gap-3">
-            {paso.demandaRestante.map((valor, idx) => (
-              <div
-                key={idx}
-                  className={`px-3.5 py-2 rounded-lg text-sm ${
-                  valor === 0 
-                    ? 'bg-muted text-muted-foreground line-through' 
-                    : 'bg-green-200 text-green-700'
-                }`}
-              >
-                D{idx + 1}: {valor}
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      {/* ===== MATRIZ DINÁMICA ===== */}
-      <div className="section-box-light">
-        <div className="flex flex-col gap-2 mb-3 sm:flex-row sm:items-center sm:justify-between">
-          <div>
-            <h4 className="text-sm font-medium text-foreground">Matriz de asignaciones</h4>
-            <p className="text-xs text-muted-foreground">Se muestra la matriz completa con orígenes/destinos inactivos atenuados. Esto mantiene la estructura familiar y mejora la comprensión.</p>
-          </div>
-          <div className="text-xs text-slate-500">
-            <span>Las filas/columnas completadas se atenúan</span>
-          </div>
-        </div>
-
-        <div className="panel-summary">
-          <div>Orígenes completados: {paso.ofertaRestante.map((valor, idx) => valor <= 0 ? `O${idx + 1}` : null).filter(Boolean).join(', ') || 'ninguno'}</div>
-          <div>Destinos completados: {paso.demandaRestante.map((valor, idx) => valor <= 0 ? `D${idx + 1}` : null).filter(Boolean).join(', ') || 'ninguno'}</div>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="table-base">
-            <thead>
-              <tr>
-                <th className="table-header">Origen / Destino</th>
-                {columnasVisibles.map((columna) => (
-                  <th
-                    key={columna}
-                    className={`p-3 border border-border text-left text-xs uppercase tracking-wide ${
-                      columnaInactiva(columna) ? 'bg-muted/40 text-muted-foreground' : 'bg-muted text-slate-500'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span>D{columna + 1}</span>
-                      <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[11px] font-semibold text-slate-700">
-                        {paso.demandaRestante[columna]}
-                      </span>
+          return (
+            <details
+              key={paso.iteracion}
+              open={abierto}
+              className={`rounded-xl border bg-card shadow-sm transition-all ${abierto ? 'border-blue-300' : 'border-border'}`}
+              onToggle={(evento) => {
+                if (evento.currentTarget.open) alCambiarPaso(indicePaso);
+              }}
+            >
+              <summary className="flex cursor-pointer list-none items-center justify-between gap-4 p-4">
+                <div className="flex min-w-0 items-start gap-3">
+                  <div className={`mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full text-sm font-semibold ${abierto ? 'bg-blue-500 text-white' : 'bg-muted text-muted-foreground'}`}>
+                    {indicePaso + 1}
+                  </div>
+                  <div className="min-w-0">
+                    <div className="flex flex-wrap items-center gap-2">
+                      <h4 className="font-medium text-foreground">Iteracion {indicePaso + 1}</h4>
+                      {abierto && (
+                        <span className="badge badge-blue">Visible en la tabla principal</span>
+                      )}
+                      <Popover>
+                        <PopoverTrigger asChild>
+                          <button
+                            type="button"
+                            className="inline-flex h-7 w-7 items-center justify-center rounded-full border border-blue-200 bg-blue-50 text-blue-700 transition-colors hover:bg-blue-100"
+                            aria-label={`Explicar iteracion ${indicePaso + 1}`}
+                            onClick={(evento) => evento.stopPropagation()}
+                          >
+                            <CircleHelp className="h-4 w-4" />
+                          </button>
+                        </PopoverTrigger>
+                        <PopoverContent className="w-80 text-sm leading-relaxed" align="start">
+                          {explicacion}
+                        </PopoverContent>
+                      </Popover>
                     </div>
-                  </th>
-                ))}
-                <th className="table-cell font-medium bg-blue-50 text-blue-800">Oferta</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filasVisibles.map((fila) => {
-                const filaInactiva = paso.ofertaRestante[fila] <= 0;
-                return (
-                  <tr key={fila} className={filaInactiva ? 'opacity-70' : ''}>
-                    <th
-                      className={`p-3 border border-border ${
-                        filaInactiva ? 'bg-muted/40 text-muted-foreground' : 'bg-muted text-slate-700'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between">
-                        <span className="font-medium">O{fila + 1}</span>
-                        <span className="rounded-full bg-slate-200 px-2 py-0.5 text-[11px] text-slate-700">
-                          {paso.ofertaRestante[fila]}
-                        </span>
-                      </div>
-                    </th>
-                    {columnasVisibles.map((columna) => {
-                      const valorAsignacion = paso.asignaciones[fila]?.[columna] ?? 0;
-                      const costo = costos[fila]?.[columna] ?? 0;
-                      const estaSeleccionada = paso.celdasResaltadas.some(
-                        (celda) => celda.fila === fila && celda.columna === columna
-                      );
-                      return (
-                        <td
-                          key={`${fila}-${columna}`}
-                          className={`p-3 border border-border align-middle text-center ${
-                            estaSeleccionada ? 'bg-blue-100 text-blue-900 font-semibold' : 'bg-white text-slate-700'
-                          } ${
-                            columnaInactiva(columna) ? 'bg-muted/20 text-muted-foreground' : ''
-                          }`}
-                        >
-                          <div className="flex flex-col items-center gap-1">
-                            <span className="text-xs text-slate-500">${costo}</span>
-                            {valorAsignacion > 0 ? (
-                              <span className="inline-flex items-center justify-center rounded-full bg-green-100 px-2 py-1 text-xs font-semibold text-green-800">
-                                {valorAsignacion}
-                              </span>
-                            ) : (
-                              <span className="text-slate-400">-</span>
-                            )}
-                          </div>
-                        </td>
-                      );
-                    })}
-                    <td className="p-3 border border-border bg-blue-50 text-center text-slate-700">{paso.ofertaRestante[fila]}</td>
-                  </tr>
-                );
-              })}
-              {/* Fila de demandas restantes */}
-              <tr>
-                <td className="p-3 border border-border bg-green-100 text-sm font-medium text-green-800">
-                  Demanda
-                </td>
-                {columnasVisibles.map((columna) => (
-                  <td
-                    key={`demanda-${columna}`}
-                    className={`p-3 border border-border text-center ${
-                      columnaInactiva(columna) ? 'bg-muted/20 text-muted-foreground' : 'bg-green-50 text-slate-700'
-                    }`}
-                  >
-                    <span className="font-semibold text-sm">{paso.demandaRestante[columna]}</span>
-                  </td>
-                ))}
-                <td className="p-3 border border-border bg-muted"></td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
+                    <p className="mt-1 text-sm leading-relaxed text-muted-foreground">{paso.descripcion}</p>
+                  </div>
+                </div>
+                <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground transition-transform details-open:rotate-180" />
+              </summary>
 
-      {/* ===== COSTO ACUMULADO ===== */}
-      <div className="pt-4 border-t border-border">
-        <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-4 text-white">
-          <div className="flex items-center justify-between">
-            <span className="text-sm opacity-90">Costo Acumulado</span>
-              <span className="text-3xl font-bold leading-none">${paso.costo.toLocaleString('es-EC')}</span>
-          </div>
-        </div>
+              <div className="space-y-4 border-t border-border p-4 pt-5">
+                <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
+                  <div className="section-box-light">
+                    <span className="text-xs font-medium uppercase text-blue-700">Costo acumulado</span>
+                    <div className="mt-2 text-2xl font-bold leading-none text-blue-700">
+                      ${formatearNumero(paso.costo)}
+                    </div>
+                  </div>
+                  <div className="section-box-light">
+                    <span className="text-xs font-medium uppercase text-slate-600">Origenes tachados</span>
+                    <div className="mt-2 text-sm text-slate-700">{origenesAgotados || 'Ninguno'}</div>
+                  </div>
+                  <div className="section-box-light">
+                    <span className="text-xs font-medium uppercase text-slate-600">Destinos tachados</span>
+                    <div className="mt-2 text-sm text-slate-700">{destinosAgotados || 'Ninguno'}</div>
+                  </div>
+                </div>
+
+                <div className="overflow-x-auto rounded-xl border border-border">
+                  <table className="table-base min-w-[720px]">
+                    <thead>
+                      <tr>
+                        <th className="table-header">Origen / Destino</th>
+                        {paso.demandaRestante.map((demandaRestante, columna) => {
+                          const columnaAgotada = estaAgotado(demandaRestante);
+                          return (
+                            <th
+                              key={columna}
+                              className={`table-header text-center ${columnaAgotada ? 'bg-amber-100 text-amber-900' : ''}`}
+                            >
+                              <span className={columnaAgotada ? 'line-through decoration-2' : ''}>
+                                {etiquetaDestino(columna, destinosFicticios)}
+                              </span>
+                              <span className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${columnaAgotada ? 'bg-amber-200 text-amber-900 line-through decoration-2' : 'bg-green-100 text-green-700'}`}>
+                                {formatearNumero(demandaRestante)}
+                              </span>
+                            </th>
+                          );
+                        })}
+                        <th className="table-cell bg-blue-50 text-center font-medium text-blue-800">Oferta</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {paso.asignaciones.map((filaAsignaciones, fila) => {
+                        const filaAgotada = estaAgotado(paso.ofertaRestante[fila]);
+                        return (
+                          <tr key={fila}>
+                            <th className={`table-cell text-center font-medium ${filaAgotada ? 'bg-amber-100 text-amber-900' : 'bg-muted text-slate-700'}`}>
+                              <span className={filaAgotada ? 'line-through decoration-2' : ''}>
+                                {etiquetaOrigen(fila, origenesFicticios)}
+                              </span>
+                              <span className={`ml-2 rounded-full px-2 py-0.5 text-[11px] font-semibold ${filaAgotada ? 'bg-amber-200 text-amber-900 line-through decoration-2' : 'bg-blue-100 text-blue-700'}`}>
+                                {formatearNumero(paso.ofertaRestante[fila])}
+                              </span>
+                            </th>
+                            {filaAsignaciones.map((asignacion, columna) => {
+                              const seleccionada = paso.celdasResaltadas.some(
+                                (celda) => celda.fila === fila && celda.columna === columna
+                              );
+                              const columnaAgotada = estaAgotado(paso.demandaRestante[columna]);
+                              const celdaAgotada = filaAgotada || columnaAgotada;
+                              return (
+                                <td
+                                  key={`${fila}-${columna}`}
+                                  className={`table-cell text-center align-middle ${celdaAgotada ? 'bg-amber-50 text-amber-900' : seleccionada ? 'bg-blue-100 text-blue-900' : 'bg-white text-slate-700'}`}
+                                >
+                                  <div className="flex flex-col items-center gap-1">
+                                    <span className={`text-base font-semibold ${celdaAgotada ? 'line-through decoration-2' : ''}`}>
+                                      {formatearNumero(costos[fila]?.[columna] ?? 0)}
+                                    </span>
+                                    {asignacion > 0 ? (
+                                      <span className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold ${celdaAgotada ? 'bg-amber-200 text-amber-900 line-through decoration-2' : 'bg-green-100 text-green-800'}`}>
+                                        {seleccionada && <CheckCircle2 className="h-3 w-3" />}
+                                        {formatearNumero(asignacion)}
+                                      </span>
+                                    ) : (
+                                      <span className="text-slate-400">-</span>
+                                    )}
+                                  </div>
+                                </td>
+                              );
+                            })}
+                            <td className={`table-cell text-center font-semibold ${filaAgotada ? 'bg-amber-100 text-amber-900 line-through decoration-2' : 'bg-blue-50 text-blue-800'}`}>
+                              {formatearNumero(paso.ofertaRestante[fila])}
+                            </td>
+                          </tr>
+                        );
+                      })}
+                      <tr>
+                        <td className="table-cell bg-green-100 font-medium text-green-800">Demanda</td>
+                        {paso.demandaRestante.map((valor, columna) => (
+                          <td
+                            key={`demanda-${columna}`}
+                            className={`table-cell text-center font-semibold ${estaAgotado(valor) ? 'bg-amber-100 text-amber-900 line-through decoration-2' : 'bg-green-50 text-green-800'}`}
+                          >
+                            {formatearNumero(valor)}
+                          </td>
+                        ))}
+                        <td className="table-cell bg-muted" />
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </details>
+          );
+        })}
       </div>
     </div>
   );

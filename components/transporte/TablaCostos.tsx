@@ -13,7 +13,7 @@
  */
 'use client';
 
-import { Plus, Trash2, AlertCircle, CheckCircle } from 'lucide-react';
+import { Plus, Trash2, AlertCircle, CheckCircle, Scale } from 'lucide-react';
 
 /* =====================================================================
    TIPOS/INTERFACES
@@ -41,6 +41,8 @@ interface PropsTablaCostos {
   alEliminarColumna: (indice: number) => void;
   /** Callback para limpiar todos los datos */
   alLimpiarDatos: () => void;
+  /** Callback para balancear oferta y demanda automaticamente */
+  alBalancearMatriz: () => void;
   /** Indica si se puede agregar otra fila */
   puedeAgregarFila?: boolean;
   /** Indica si se puede agregar otra columna */
@@ -53,6 +55,10 @@ interface PropsTablaCostos {
   celdasResaltadas?: { fila: number; columna: number }[];
   /** Matriz de asignaciones actuales para mostrar */
   asignaciones?: number[][];
+  /** Indices de origenes ficticios agregados por balanceo */
+  origenesFicticios?: number[];
+  /** Indices de destinos ficticios agregados por balanceo */
+  destinosFicticios?: number[];
 }
 
 /* =====================================================================
@@ -70,12 +76,15 @@ export function TablaCostos({
   alEliminarFila,
   alEliminarColumna,
   alLimpiarDatos,
+  alBalancearMatriz,
   puedeAgregarFila = true,
   puedeAgregarColumna = true,
   limiteFilas,
   limiteColumnas,
   celdasResaltadas = [],
   asignaciones = [],
+  origenesFicticios = [],
+  destinosFicticios = [],
 }: PropsTablaCostos) {
   /* ===== CÁLCULO DEL BALANCE ===== */
   const totalOferta = oferta.reduce((a, b) => a + b, 0);
@@ -99,7 +108,7 @@ export function TablaCostos({
           ? 'bg-green-50 border-2 border-green-300' 
           : 'bg-amber-50 border-2 border-amber-300'
       }`}>
-        <div className="flex items-center gap-3">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center">
           {estaBalanceado ? (
             <div className="flex items-center justify-center w-8 h-8 bg-green-500 rounded-full">
               <CheckCircle className="w-5 h-5 text-white" />
@@ -122,7 +131,22 @@ export function TablaCostos({
                 </>
               )}
             </div>
+            {(origenesFicticios.length > 0 || destinosFicticios.length > 0) && (
+              <div className="mt-2 text-xs leading-relaxed text-slate-600">
+                La etiqueta F indica una fila o columna ficticia agregada para balancear. Sus costos 0 se consideran en el metodo, pero no aumentan el costo final.
+              </div>
+            )}
           </div>
+          {!estaBalanceado && (
+            <button
+              onClick={alBalancearMatriz}
+              className="btn btn-primary shrink-0"
+              type="button"
+            >
+              <Scale className="w-4 h-4" />
+              Balancear matriz
+            </button>
+          )}
         </div>
       </div>
 
@@ -137,7 +161,9 @@ export function TablaCostos({
               {demanda.map((_, idx) => (
                 <th key={idx} className="table-header min-w-[100px]">
                   <div className="flex items-center justify-center gap-2 py-1">
-                    <span className="text-sm font-medium">D{idx + 1}</span>
+                    <span className="text-sm font-medium">
+                      D{idx + 1}{destinosFicticios.includes(idx) ? ' F' : ''}
+                    </span>
                     {/* Botón eliminar columna (solo si hay más de 1) */}
                     {demanda.length > 1 && (
                       <button
@@ -164,7 +190,9 @@ export function TablaCostos({
                 {/* Etiqueta del origen */}
                 <td className="table-cell bg-muted px-4 py-4">
                   <div className="flex items-center justify-center gap-2">
-                    <span className="text-sm font-medium">O{indiceFila + 1}</span>
+                    <span className="text-sm font-medium">
+                      O{indiceFila + 1}{origenesFicticios.includes(indiceFila) ? ' F' : ''}
+                    </span>
                     {/* Botón eliminar fila (solo si hay más de 1) */}
                     {costos.length > 1 && (
                       <button

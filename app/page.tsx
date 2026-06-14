@@ -78,6 +78,8 @@ export default function PaginaPrincipal() {
   ]);
   const [oferta, setOferta] = useState<number[]>([35, 50, 40]);
   const [demanda, setDemanda] = useState<number[]>([45, 20, 30, 30]);
+  const [origenesFicticios, setOrigenesFicticios] = useState<number[]>([]);
+  const [destinosFicticios, setDestinosFicticios] = useState<number[]>([]);
 
   // Método y modo de visualización seleccionados
   const [metodoSeleccionado, setMetodoSeleccionado] = useState<MetodoTransporte>('noroeste');
@@ -264,6 +266,7 @@ export default function PaginaPrincipal() {
     }
     setCostos([...costos, Array(costos[0].length).fill(0)]);
     setOferta([...oferta, 0]);
+    setOrigenesFicticios(origenesFicticios.filter((idx) => idx < costos.length));
     setErroresValidacion([]);
   };
 
@@ -277,6 +280,7 @@ export default function PaginaPrincipal() {
     }
     setCostos(costos.map(fila => [...fila, 0]));
     setDemanda([...demanda, 0]);
+    setDestinosFicticios(destinosFicticios.filter((idx) => idx < costos[0].length));
     setErroresValidacion([]);
   };
 
@@ -287,6 +291,9 @@ export default function PaginaPrincipal() {
     if (costos.length > 1) {
       setCostos(costos.filter((_, i) => i !== indice));
       setOferta(oferta.filter((_, i) => i !== indice));
+      setOrigenesFicticios(origenesFicticios
+        .filter((idx) => idx !== indice)
+        .map((idx) => (idx > indice ? idx - 1 : idx)));
       setErroresValidacion([]);
     }
   };
@@ -298,6 +305,9 @@ export default function PaginaPrincipal() {
     if (costos[0].length > 1) {
       setCostos(costos.map(fila => fila.filter((_, i) => i !== indice)));
       setDemanda(demanda.filter((_, i) => i !== indice));
+      setDestinosFicticios(destinosFicticios
+        .filter((idx) => idx !== indice)
+        .map((idx) => (idx > indice ? idx - 1 : idx)));
       setErroresValidacion([]);
     }
   };
@@ -309,6 +319,55 @@ export default function PaginaPrincipal() {
     setCostos(costos.map(fila => fila.map(() => 0)));
     setOferta(oferta.map(() => 0));
     setDemanda(demanda.map(() => 0));
+    setOrigenesFicticios([]);
+    setDestinosFicticios([]);
+    setPasos([]);
+    setAsignaciones([]);
+    setCostoTotal(0);
+    setPasoActual(0);
+    setResultadosComparacion([]);
+    setErroresValidacion([]);
+  };
+
+  /**
+   * Balancea automaticamente la matriz agregando un origen o destino ficticio.
+   * Si sobra oferta, se agrega un destino con la demanda faltante.
+   * Si sobra demanda, se agrega un origen con la oferta faltante.
+   */
+  const manejarBalancearMatriz = () => {
+    const totalOferta = oferta.reduce((suma, valor) => suma + valor, 0);
+    const totalDemanda = demanda.reduce((suma, valor) => suma + valor, 0);
+    const diferencia = Math.abs(totalOferta - totalDemanda);
+
+    if (diferencia <= 1e-9) {
+      setErroresValidacion(['La matriz ya esta balanceada.']);
+      return;
+    }
+
+    if (totalOferta > totalDemanda) {
+      if (!puedeAgregarColumna) {
+        setErroresValidacion([
+          `No se puede balancear: se necesita agregar un destino ficticio y el limite actual es ${limitesMetodo.maxColumnas} destinos.`,
+        ]);
+        return;
+      }
+
+      setCostos(costos.map((fila) => [...fila, 0]));
+      setDemanda([...demanda, diferencia]);
+      setDestinosFicticios([...destinosFicticios, demanda.length]);
+    } else {
+      if (!puedeAgregarFila) {
+        setErroresValidacion([
+          `No se puede balancear: se necesita agregar un origen ficticio y el limite actual es ${limitesMetodo.maxFilas} origenes.`,
+        ]);
+        return;
+      }
+
+      setCostos([...costos, Array(costos[0].length).fill(0)]);
+      setOferta([...oferta, diferencia]);
+      setOrigenesFicticios([...origenesFicticios, oferta.length]);
+    }
+
     setPasos([]);
     setAsignaciones([]);
     setCostoTotal(0);
@@ -330,6 +389,8 @@ export default function PaginaPrincipal() {
     setCostos(Array(filas).fill(0).map(() => Array(columnas).fill(0)));
     setOferta(Array(filas).fill(0));
     setDemanda(Array(columnas).fill(0));
+    setOrigenesFicticios([]);
+    setDestinosFicticios([]);
     setPasos([]);
     setAsignaciones([]);
     setCostoTotal(0);
@@ -345,6 +406,8 @@ export default function PaginaPrincipal() {
     setCostos(entrada.costos);
     setOferta(entrada.oferta);
     setDemanda(entrada.demanda);
+    setOrigenesFicticios([]);
+    setDestinosFicticios([]);
     setAsignaciones(entrada.asignaciones);
     setCostoTotal(entrada.costoTotal);
     setPasos([]);
@@ -368,6 +431,8 @@ export default function PaginaPrincipal() {
     setCostos(costosNuevos);
     setOferta(ofertaNueva);
     setDemanda(demandaNueva);
+    setOrigenesFicticios([]);
+    setDestinosFicticios([]);
 
     // Limpiar resultados anteriores
     setPasos([]);
@@ -389,6 +454,8 @@ export default function PaginaPrincipal() {
     ]);
     setOferta([35, 50, 40]);
     setDemanda([45, 20, 30, 30]);
+    setOrigenesFicticios([]);
+    setDestinosFicticios([]);
     setPasos([]);
     setAsignaciones([]);
     setCostoTotal(0);
@@ -595,12 +662,15 @@ export default function PaginaPrincipal() {
                 alEliminarFila={manejarEliminarFila}
                 alEliminarColumna={manejarEliminarColumna}
                 alLimpiarDatos={manejarLimpiarDatos}
+                alBalancearMatriz={manejarBalancearMatriz}
                 puedeAgregarFila={puedeAgregarFila}
                 puedeAgregarColumna={puedeAgregarColumna}
                 limiteFilas={limitesMetodo.maxFilas}
                 limiteColumnas={limitesMetodo.maxColumnas}
                 celdasResaltadas={celdasResaltadas.map(c => ({ fila: c.fila, columna: c.columna }))}
                 asignaciones={asignacionesActuales}
+                origenesFicticios={origenesFicticios}
+                destinosFicticios={destinosFicticios}
               />
             </section>
 
@@ -664,6 +734,8 @@ export default function PaginaPrincipal() {
             <PanelPasos
               pasos={pasos}
               costos={costos}
+              origenesFicticios={origenesFicticios}
+              destinosFicticios={destinosFicticios}
               pasoActual={pasoActual}
               alCambiarPaso={setPasoActual}
             />

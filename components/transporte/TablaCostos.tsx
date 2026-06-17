@@ -14,6 +14,16 @@
 'use client';
 
 import { Plus, Trash2, AlertCircle, CheckCircle, Scale } from 'lucide-react';
+import type { PenalizacionesVogel } from '@/lib/algoritmos-transporte';
+
+function formatearNumero(valor: number) {
+  return valor.toLocaleString('es-EC', { maximumFractionDigits: 2 });
+}
+
+function formatearPenalidad(penalidad: PenalizacionesVogel['filas'][number]) {
+  if (!penalidad) return '-';
+  return `${formatearNumero(penalidad.minuendo)} - ${formatearNumero(penalidad.sustraendo)} = ${formatearNumero(penalidad.resultado)}`;
+}
 
 /* =====================================================================
    TIPOS/INTERFACES
@@ -59,6 +69,8 @@ interface PropsTablaCostos {
   origenesFicticios?: number[];
   /** Indices de destinos ficticios agregados por balanceo */
   destinosFicticios?: number[];
+  /** Penalizaciones actuales del metodo de Vogel */
+  penalizacionesVogel?: PenalizacionesVogel;
 }
 
 /* =====================================================================
@@ -85,6 +97,7 @@ export function TablaCostos({
   asignaciones = [],
   origenesFicticios = [],
   destinosFicticios = [],
+  penalizacionesVogel,
 }: PropsTablaCostos) {
   /* ===== CÁLCULO DEL BALANCE ===== */
   const totalOferta = oferta.reduce((a, b) => a + b, 0);
@@ -180,6 +193,11 @@ export function TablaCostos({
               <th className="table-cell font-medium bg-blue-100 text-blue-800 px-4 py-3">
                 Oferta
               </th>
+              {penalizacionesVogel && (
+                <th className="table-cell font-medium bg-indigo-100 text-indigo-800 px-4 py-3">
+                  Penalidad fila
+                </th>
+              )}
             </tr>
           </thead>
           
@@ -251,8 +269,39 @@ export function TablaCostos({
                     aria-label={`Oferta del origen ${indiceFila + 1}`}
                   />
                 </td>
+                {penalizacionesVogel && (
+                  <td className={`table-cell text-center font-semibold ${
+                    penalizacionesVogel.seleccionado.tipo === 'fila' && penalizacionesVogel.seleccionado.indice === indiceFila
+                      ? 'bg-indigo-200 text-indigo-950 ring-2 ring-inset ring-indigo-500'
+                      : 'bg-indigo-50 text-indigo-800'
+                  }`}>
+                    {formatearPenalidad(penalizacionesVogel.filas[indiceFila])}
+                  </td>
+                )}
               </tr>
             ))}
+
+            {penalizacionesVogel && (
+              <tr>
+                <td className="table-cell font-medium bg-indigo-100 text-indigo-800 px-4 py-3">
+                  Penalidad columna
+                </td>
+                {penalizacionesVogel.columnas.map((valor, idx) => (
+                  <td
+                    key={`penalidad-columna-${idx}`}
+                    className={`table-cell text-center font-semibold ${
+                      penalizacionesVogel.seleccionado.tipo === 'columna' && penalizacionesVogel.seleccionado.indice === idx
+                        ? 'bg-indigo-200 text-indigo-950 ring-2 ring-inset ring-indigo-500'
+                        : 'bg-indigo-50 text-indigo-800'
+                    }`}
+                  >
+                    {formatearPenalidad(valor)}
+                  </td>
+                ))}
+                <td className="table-cell bg-indigo-50" />
+                <td className="table-cell bg-indigo-50" />
+              </tr>
+            )}
             
             {/* Fila de demandas */}
             <tr>
@@ -273,6 +322,7 @@ export function TablaCostos({
                 </td>
               ))}
               <td className="p-2 bg-muted border border-border"></td>
+              {penalizacionesVogel && <td className="p-2 bg-muted border border-border"></td>}
             </tr>
           </tbody>
         </table>

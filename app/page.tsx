@@ -559,6 +559,53 @@ export default function PaginaPrincipal() {
     }
   };
 
+  useEffect(() => {
+    const desplazarA = (id: string) => {
+      window.setTimeout(() => {
+        document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }, 0);
+    };
+
+    const manejarNavegacionFooter = (evento: Event) => {
+      const accion = (evento as CustomEvent<{ accion?: string }>).detail?.accion;
+
+      switch (accion) {
+        case 'noroeste':
+          setMetodoSeleccionado('noroeste');
+          setModoSeleccionado('paso-a-paso');
+          setMostrarHistorial(false);
+          desplazarA('tabla');
+          break;
+        case 'costo-minimo':
+          setMetodoSeleccionado('costo-minimo');
+          setModoSeleccionado('paso-a-paso');
+          setMostrarHistorial(false);
+          desplazarA('tabla');
+          break;
+        case 'vogel':
+          setMetodoSeleccionado('vogel');
+          setModoSeleccionado('paso-a-paso');
+          setMostrarHistorial(false);
+          desplazarA('tabla');
+          break;
+        case 'historial':
+          setMostrarHistorial(true);
+          desplazarA('panel-historial');
+          break;
+        case 'comparacion':
+          setMostrarHistorial(false);
+          setModoSeleccionado('comparacion');
+          desplazarA(resultadosComparacion.length > 0 ? 'panel-comparacion' : 'metodo');
+          break;
+        default:
+          break;
+      }
+    };
+
+    window.addEventListener('transporte-footer-navegacion', manejarNavegacionFooter);
+    return () => window.removeEventListener('transporte-footer-navegacion', manejarNavegacionFooter);
+  }, [resultadosComparacion.length]);
+
   /* ===================================================================
      VARIABLES DERIVADAS
      =================================================================== */
@@ -576,6 +623,10 @@ export default function PaginaPrincipal() {
     ? pasos[pasoActual].celdasResaltadas
     : [];
 
+  const penalizacionesVogelActuales = metodoSeleccionado === 'vogel' && modoSeleccionado === 'paso-a-paso' && pasos.length > 0
+    ? pasos[pasoActual].penalizacionesVogel
+    : undefined;
+
   /* ===================================================================
      RENDERIZADO
      =================================================================== */
@@ -584,7 +635,7 @@ export default function PaginaPrincipal() {
     <div className="min-h-screen bg-background p-5 md:p-10">
       <div className="max-w-[1920px] mx-auto space-y-8">
         {/* ===== ENCABEZADO ===== */}
-        <header className="panel-banner">
+        <header id="inicio" className="panel-banner">
           <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             {/* Título y descripción */}
             <div className="flex items-center gap-5">
@@ -671,6 +722,7 @@ export default function PaginaPrincipal() {
                 asignaciones={asignacionesActuales}
                 origenesFicticios={origenesFicticios}
                 destinosFicticios={destinosFicticios}
+                penalizacionesVogel={penalizacionesVogelActuales}
               />
             </section>
 
@@ -690,19 +742,21 @@ export default function PaginaPrincipal() {
           {/* Columna derecha: controles y panel lateral */}
           <aside id="metodo" className="space-y-8 h-full flex flex-col">
             {mostrarHistorial ? (
-              <PanelHistorial
-                historial={historial}
-                alCargar={cargarEntradaHistorial}
-                alEliminar={(id) => {
-                  const nuevoHistorial = historial.filter(h => h.id !== id);
-                  setHistorial(nuevoHistorial);
-                  localStorage.setItem('historialTransporte', JSON.stringify(nuevoHistorial));
-                }}
-                alLimpiar={() => {
-                  setHistorial([]);
-                  localStorage.removeItem('historialTransporte');
-                }}
-              />
+              <div id="panel-historial">
+                <PanelHistorial
+                  historial={historial}
+                  alCargar={cargarEntradaHistorial}
+                  alEliminar={(id) => {
+                    const nuevoHistorial = historial.filter(h => h.id !== id);
+                    setHistorial(nuevoHistorial);
+                    localStorage.setItem('historialTransporte', JSON.stringify(nuevoHistorial));
+                  }}
+                  alLimpiar={() => {
+                    setHistorial([]);
+                    localStorage.removeItem('historialTransporte');
+                  }}
+                />
+              </div>
             ) : (
               <div className="card flex flex-col justify-between flex-1 min-h-[440px] p-6 md:p-7">
                 <div className="flex-1">
@@ -744,7 +798,7 @@ export default function PaginaPrincipal() {
 
         {/* Panel de comparación */}
         {modoSeleccionado === 'comparacion' && resultadosComparacion.length > 0 && (
-          <section className="card p-6 md:p-7">
+          <section id="panel-comparacion" className="card p-6 md:p-7">
             <PanelComparacion resultados={resultadosComparacion} />
           </section>
         )}

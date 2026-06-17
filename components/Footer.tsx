@@ -7,6 +7,10 @@ export default function Footer() {
   const [panelAbierto, setPanelAbierto] = useState<PanelInfo>(null)
   const cerrar = () => setPanelAbierto(null)
 
+  const navegarFuncionalidad = (accion: string) => {
+    window.dispatchEvent(new CustomEvent('transporte-footer-navegacion', { detail: { accion } }))
+  }
+
   return (
     <>
       {/* ===== MODALES ===== */}
@@ -58,14 +62,14 @@ export default function Footer() {
                     'Facilita la comprensión y resolución de problemas de transporte mediante métodos matemáticos clásicos de investigación de operaciones.',
                     'Herramienta de uso libre, sin fines de lucro, orientada exclusivamente al ámbito académico.',
                   ].map((texto, i) => (
-                    <div key={i} style={{ display: 'flex', gap: 12 }}>
+                    <div key={i} style={{ display: 'flex', gap: 12, alignItems: 'flex-start' }}>
                       <div style={{ width: 6, height: 6, borderRadius: '50%', background: 'oklch(0.55 0.20 250)', marginTop: 8, flexShrink: 0 }} />
                       <p style={{ fontSize: 14, color: 'var(--muted-foreground)', lineHeight: 1.65, margin: 0 }}>{texto}</p>
                     </div>
                   ))}
                 </div>
                 <div style={{ padding: '1rem 1.75rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button onClick={cerrar} className="btn btn-secondary">Cerrar</button>
+                  <button onClick={cerrar} className="btn btn-secondary footer-modal-close-btn">Cerrar</button>
                 </div>
               </>
             )}
@@ -94,7 +98,7 @@ export default function Footer() {
                     { nombre: 'Aproximación de Vogel', badge: 'Óptimo', badgeBg: 'oklch(0.93 0.05 145)', badgeColor: 'oklch(0.35 0.12 145)', desc: 'Calcula penalizaciones por fila y columna, asignando primero donde la penalización es mayor. La solución inicial más cercana al óptimo.' },
                   ].map((m, i) => (
                     <div key={i} style={{ border: '1px solid var(--border)', borderRadius: 'var(--radius)', padding: '1rem 1.25rem' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6 }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 6, flexWrap: 'wrap' }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="oklch(0.55 0.20 250)" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
                         <span style={{ fontSize: 14, fontWeight: 600, color: 'var(--foreground)' }}>{m.nombre}</span>
                         <span style={{ fontSize: 11, padding: '2px 8px', borderRadius: 20, background: m.badgeBg, color: m.badgeColor, fontWeight: 500 }}>{m.badge}</span>
@@ -104,7 +108,7 @@ export default function Footer() {
                   ))}
                 </div>
                 <div style={{ padding: '1rem 1.75rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button onClick={cerrar} className="btn btn-secondary">Cerrar</button>
+                  <button onClick={cerrar} className="btn btn-secondary footer-modal-close-btn">Cerrar</button>
                 </div>
               </>
             )}
@@ -145,7 +149,7 @@ export default function Footer() {
                   </p>
                 </div>
                 <div style={{ padding: '1rem 1.75rem', borderTop: '1px solid var(--border)', display: 'flex', justifyContent: 'flex-end' }}>
-                  <button onClick={cerrar} className="btn btn-secondary">Cerrar</button>
+                  <button onClick={cerrar} className="btn btn-secondary footer-modal-close-btn">Cerrar</button>
                 </div>
               </>
             )}
@@ -179,12 +183,12 @@ export default function Footer() {
           <div>
             <h3>Funcionalidades</h3>
             <ul>
-              <li><a href="/#tabla">Esquina Noroeste</a></li>
-              <li><a href="/#tabla">Costo Mínimo</a></li>
-              <li><a href="/#tabla">Aproximación de Vogel</a></li>
-              <li><a href="/#metodo">Comparación de Métodos</a></li>
-              <li><a href="/#historial-btn">Panel de Historial</a></li>
-              <li><a href="/#metodo">Panel de Comparación</a></li>
+              <li><button className="site-footer__link-btn" onClick={() => navegarFuncionalidad('noroeste')}>Esquina Noroeste</button></li>
+              <li><button className="site-footer__link-btn" onClick={() => navegarFuncionalidad('costo-minimo')}>Costo Mínimo</button></li>
+              <li><button className="site-footer__link-btn" onClick={() => navegarFuncionalidad('vogel')}>Aproximación de Vogel</button></li>
+              <li><button className="site-footer__link-btn" onClick={() => navegarFuncionalidad('comparacion')}>Comparación de Métodos</button></li>
+              <li><button className="site-footer__link-btn" onClick={() => navegarFuncionalidad('historial')}>Panel de Historial</button></li>
+              <li><button className="site-footer__link-btn" onClick={() => navegarFuncionalidad('comparacion')}>Panel de Comparación</button></li>
             </ul>
           </div>
 
@@ -202,7 +206,7 @@ export default function Footer() {
         <div className="site-footer__bottom">
           <p>© 2026 — Panel de Cálculo de Transporte · ULEAM</p>
           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-            <a href="#">Privacidad</a>
+            <button className="site-footer__link-btn" onClick={() => setPanelAbierto('licencia')}>Privacidad</button>
             <span>·</span>
             <a href="#">Mapa del Sitio</a>
           </div>

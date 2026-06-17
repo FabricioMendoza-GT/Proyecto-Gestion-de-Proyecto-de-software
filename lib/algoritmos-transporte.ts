@@ -37,6 +37,23 @@ export interface Paso {
   demandaRestante: number[];
   /** Costo acumulado hasta este paso */
   costo: number;
+  /** Penalizaciones visibles para las iteraciones del metodo de Vogel */
+  penalizacionesVogel?: PenalizacionesVogel;
+}
+
+export interface PenalizacionesVogel {
+  filas: (DetallePenalizacionVogel | null)[];
+  columnas: (DetallePenalizacionVogel | null)[];
+  seleccionado: {
+    tipo: 'fila' | 'columna';
+    indice: number;
+  };
+}
+
+export interface DetallePenalizacionVogel {
+  minuendo: number;
+  sustraendo: number;
+  resultado: number;
 }
 
 /**
@@ -271,6 +288,7 @@ interface CandidatoVogel {
   tipo: 'fila' | 'columna';
   indice: number;
   penalizacion: number;
+  detallePenalizacion: DetallePenalizacionVogel;
   costoMinimo: number;
   filaObjetivo: number;
   columnaObjetivo: number;
@@ -304,11 +322,17 @@ function construirCandidatosVogel(
     const masBajo = ordenadoPorCosto[0];
     const segundoMasBajo = ordenadoPorCosto[1];
     const penalizacion = segundoMasBajo ? segundoMasBajo.costo - masBajo.costo : masBajo.costo;
+    const detallePenalizacion = {
+      minuendo: segundoMasBajo ? segundoMasBajo.costo : masBajo.costo,
+      sustraendo: segundoMasBajo ? masBajo.costo : 0,
+      resultado: penalizacion,
+    };
 
     candidatos.push({
       tipo: 'fila',
       indice: i,
       penalizacion,
+      detallePenalizacion,
       costoMinimo: masBajo.costo,
       filaObjetivo: i,
       columnaObjetivo: masBajo.columna,
@@ -330,11 +354,17 @@ function construirCandidatosVogel(
     const masBajo = ordenadoPorCosto[0];
     const segundoMasBajo = ordenadoPorCosto[1];
     const penalizacion = segundoMasBajo ? segundoMasBajo.costo - masBajo.costo : masBajo.costo;
+    const detallePenalizacion = {
+      minuendo: segundoMasBajo ? segundoMasBajo.costo : masBajo.costo,
+      sustraendo: segundoMasBajo ? masBajo.costo : 0,
+      resultado: penalizacion,
+    };
 
     candidatos.push({
       tipo: 'columna',
       indice: j,
       penalizacion,
+      detallePenalizacion,
       costoMinimo: masBajo.costo,
       filaObjetivo: masBajo.fila,
       columnaObjetivo: j,
@@ -343,6 +373,32 @@ function construirCandidatosVogel(
   }
 
   return candidatos;
+}
+
+function construirPenalizacionesVogel(
+  filas: number,
+  columnas: number,
+  candidatos: CandidatoVogel[],
+  seleccionado: CandidatoVogel
+): PenalizacionesVogel {
+  const penalizaciones: PenalizacionesVogel = {
+    filas: Array(filas).fill(null),
+    columnas: Array(columnas).fill(null),
+    seleccionado: {
+      tipo: seleccionado.tipo,
+      indice: seleccionado.indice,
+    },
+  };
+
+  for (const candidato of candidatos) {
+    if (candidato.tipo === 'fila') {
+      penalizaciones.filas[candidato.indice] = candidato.detallePenalizacion;
+    } else {
+      penalizaciones.columnas[candidato.indice] = candidato.detallePenalizacion;
+    }
+  }
+
+  return penalizaciones;
 }
 
 /* =====================================================================
@@ -531,6 +587,7 @@ export function aproximacionVogel(
       if (a.tipo !== b.tipo) return a.tipo === 'fila' ? -1 : 1;
       return a.indice - b.indice;
     })[0];
+    const penalizacionesVogel = construirPenalizacionesVogel(filas, columnas, candidatos, seleccionado);
 
     // Asignar en la celda seleccionada
     const asignacion = Math.min(ofertaRestante[seleccionado.filaObjetivo], demandaRestante[seleccionado.columnaObjetivo]);
@@ -550,6 +607,7 @@ export function aproximacionVogel(
       ofertaRestante: [...ofertaRestante],
       demandaRestante: [...demandaRestante],
       costo: costoTotal,
+      penalizacionesVogel,
     });
   }
 

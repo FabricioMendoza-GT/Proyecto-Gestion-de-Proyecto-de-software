@@ -385,6 +385,16 @@ input[type="number"] {
   text-decoration: underline;
 }
 
+.footer-modal-close-btn {
+  transition: background-color 0.2s ease, color 0.2s ease, transform 0.2s ease;
+}
+
+.footer-modal-close-btn:hover {
+  background: oklch(0.55 0.20 250);
+  color: white;
+  transform: translateY(-1px);
+}
+
 .site-footer__bottom {
   display: flex;
   justify-content: space-between;

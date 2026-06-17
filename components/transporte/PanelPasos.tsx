@@ -21,6 +21,11 @@ function formatearNumero(valor: number) {
   return valor.toLocaleString('es-EC', { maximumFractionDigits: 2 });
 }
 
+function formatearPenalidad(penalidad: NonNullable<Paso['penalizacionesVogel']>['filas'][number]) {
+  if (!penalidad) return '-';
+  return `${formatearNumero(penalidad.minuendo)} - ${formatearNumero(penalidad.sustraendo)} = ${formatearNumero(penalidad.resultado)}`;
+}
+
 function etiquetaOrigen(indice: number, origenesFicticios: number[]) {
   return `O${indice + 1}${origenesFicticios.includes(indice) ? ' F' : ''}`;
 }
@@ -99,6 +104,7 @@ export function PanelPasos({
       <div className="grid grid-cols-1 gap-4">
         {pasos.map((paso, indicePaso) => {
           const abierto = indicePaso === pasoActual;
+          const penalizaciones = paso.penalizacionesVogel;
           const origenesAgotados = paso.ofertaRestante
             .map((valor, idx) => (estaAgotado(valor) ? etiquetaOrigen(idx, origenesFicticios) : null))
             .filter(Boolean)
@@ -191,6 +197,9 @@ export function PanelPasos({
                           );
                         })}
                         <th className="table-cell bg-blue-50 text-center font-medium text-blue-800">Oferta</th>
+                        {penalizaciones && (
+                          <th className="table-cell bg-indigo-50 text-center font-medium text-indigo-800">Penalidad fila</th>
+                        )}
                       </tr>
                     </thead>
                     <tbody>
@@ -236,9 +245,41 @@ export function PanelPasos({
                             <td className={`table-cell text-center font-semibold ${filaAgotada ? 'bg-amber-100 text-amber-900 line-through decoration-2' : 'bg-blue-50 text-blue-800'}`}>
                               {formatearNumero(paso.ofertaRestante[fila])}
                             </td>
+                            {penalizaciones && (
+                              <td className={`table-cell text-center font-semibold ${
+                                penalizaciones.seleccionado.tipo === 'fila' && penalizaciones.seleccionado.indice === fila
+                                  ? 'bg-indigo-200 text-indigo-950 ring-2 ring-inset ring-indigo-500'
+                                  : filaAgotada
+                                    ? 'bg-amber-100 text-amber-900'
+                                    : 'bg-indigo-50 text-indigo-800'
+                              }`}>
+                                {formatearPenalidad(penalizaciones.filas[fila])}
+                              </td>
+                            )}
                           </tr>
                         );
                       })}
+                      {penalizaciones && (
+                        <tr>
+                          <td className="table-cell bg-indigo-100 font-medium text-indigo-800">Penalidad columna</td>
+                          {penalizaciones.columnas.map((valor, columna) => (
+                            <td
+                              key={`penalidad-columna-${columna}`}
+                              className={`table-cell text-center font-semibold ${
+                                penalizaciones.seleccionado.tipo === 'columna' && penalizaciones.seleccionado.indice === columna
+                                  ? 'bg-indigo-200 text-indigo-950 ring-2 ring-inset ring-indigo-500'
+                                  : estaAgotado(paso.demandaRestante[columna])
+                                    ? 'bg-amber-100 text-amber-900'
+                                    : 'bg-indigo-50 text-indigo-800'
+                              }`}
+                            >
+                              {formatearPenalidad(valor)}
+                            </td>
+                          ))}
+                          <td className="table-cell bg-indigo-50" />
+                          <td className="table-cell bg-indigo-50" />
+                        </tr>
+                      )}
                       <tr>
                         <td className="table-cell bg-green-100 font-medium text-green-800">Demanda</td>
                         {paso.demandaRestante.map((valor, columna) => (
@@ -250,6 +291,7 @@ export function PanelPasos({
                           </td>
                         ))}
                         <td className="table-cell bg-muted" />
+                        {penalizaciones && <td className="table-cell bg-muted" />}
                       </tr>
                     </tbody>
                   </table>

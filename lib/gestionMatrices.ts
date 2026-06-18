@@ -1,3 +1,26 @@
+import type { Paso } from '@/lib/algoritmos-transporte';
+import {
+  estaAgotado,
+  etiquetaDestino,
+  etiquetaOrigen,
+  explicarPasoTransporte,
+  formatearNumeroTransporte,
+  formatearPenalidadVogel,
+} from '@/lib/presentacion-transporte';
+
+interface DatosCeldaAutoTable {
+  section: 'head' | 'body' | 'foot';
+  row: { index: number };
+  column: { index: number };
+  cell: {
+    styles: {
+      fillColor: string | number | number[];
+      textColor: string | number | number[];
+      fontStyle: string;
+    };
+  };
+}
+
 /**
  * =====================================================================
  * GESTIÓN DE MATRICES - EXPORTACIÓN E IMPORTACIÓN
@@ -287,162 +310,381 @@ export function abrirSelectorArchivo(): Promise<File | null> {
    FUNCIONES DE EXPORTACIÓN A PDF
    ===================================================================== */
 
-/**
- * Exporta los resultados de un problema de transporte a un archivo PDF.
- * 
- * @param costos - Matriz de costos (orígenes x destinos)
- * @param oferta - Vector de ofertas por origen
- * @param demanda - Vector de demandas por destino
- * @param asignaciones - Matriz de asignaciones (solución)
- * @param costoTotal - Costo total de la solución
- * @param metodo - Nombre del método utilizado (ej: "Esquina Noroeste")
- * @param nombreArchivo - Nombre del archivo a descargar (sin extensión)
- * 
- * @example
- * exportarResultadosPDF(
- *   costos,
- *   oferta,
- *   demanda,
- *   asignaciones,
- *   costoTotal,
- *   "Esquina Noroeste",
- *   "resultado-transporte"
- * );
- */
-export async function exportarResultadosPDF(
-  costos: number[][],
-  oferta: number[],
-  demanda: number[],
-  asignaciones: number[][],
-  costoTotal: number,
-  metodo: string = 'No especificado',
-  nombreArchivo: string = 'resultado-transporte'
-): Promise<void> {
-  // Importar jsPDF dinámicamente para evitar problemas de SSR
+/** Resultado individual incluido en el modo comparacion. */
+export interface ResultadoComparacionPDF {
+  metodo: string;
+  costo: number;
+  asignaciones: number[][];
+  pasos?: Paso[];
+}
+
+export interface DatosResultadosPDF {
+  costos: number[][];
+  oferta: number[];
+  demanda: number[];
+  asignaciones: number[][];
+  costoTotal: number;
+  /** Metodo y modo que estaban seleccionados al presionar Resolver problema. */
+  metodo: string;
+  modo: 'paso-a-paso' | 'comparacion';
+  pasos?: Paso[];
+  resultadosComparacion?: ResultadoComparacionPDF[];
+  origenesFicticios?: number[];
+  destinosFicticios?: number[];
+  nombreArchivo?: string;
+}
+
+/** Exporta una instantanea completa de la ultima solucion calculada. */
+export async function exportarResultadosPDF(datos: DatosResultadosPDF): Promise<void> {
   const { jsPDF } = await import('jspdf');
   const { autoTable } = await import('jspdf-autotable');
+  const {
+    costos,
+    oferta,
+    demanda,
+    asignaciones,
+    costoTotal,
+    metodo,
+    modo,
+    pasos = [],
+    resultadosComparacion = [],
+    origenesFicticios = [],
+    destinosFicticios = [],
+    nombreArchivo = 'resultado-transporte',
+  } = datos;
 
-  // Crear documento PDF
-  const doc = new jsPDF();
-  let posicionY = 15;
+  const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
+  const anchoPagina = doc.internal.pageSize.getWidth();
+  const altoPagina = doc.internal.pageSize.getHeight();
+  const margen = 12;
+  const azul: [number, number, number] = [37, 99, 235];
+  const azulClaro: [number, number, number] = [59, 130, 246];
+  const indigo: [number, number, number] = [79, 70, 229];
+  let y = 14;
 
-  // Configuración de estilos
-  const colorPrimario = [33, 150, 243]; // Azul
-  const colorSecundario = [66, 133, 244]; // Azul más claro
+  const finalTabla = () => {
+    const documentoConTabla = doc as typeof doc & { lastAutoTable?: { finalY: number } };
+    return documentoConTabla.lastAutoTable?.finalY ?? y;
+  };
 
-  /* ===== ENCABEZADO ===== */
+  const asegurarEspacio = (altoNecesario: number) => {
+    if (y + altoNecesario > altoPagina - 14) {
+      doc.addPage();
+      y = 15;
+    }
+  };
+
+  const tituloSeccion = (titulo: string) => {
+    asegurarEspacio(14);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(13);
+    doc.setTextColor(...azul);
+    doc.text(titulo, margen, y);
+    y += 7;
+  };
+
+  const parrafo = (texto: string, color: [number, number, number] = [55, 65, 81]) => {
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(9);
+    const lineas = doc.splitTextToSize(texto, anchoPagina - margen * 2) as string[];
+    asegurarEspacio(lineas.length * 4.2 + 3);
+    doc.setTextColor(...color);
+    doc.text(lineas, margen, y);
+    y += lineas.length * 4.2 + 3;
+  };
+
+  const dibujarTablaEntrada = () => {
+    const encabezado = [
+      'Origen / Destino',
+      ...demanda.map((_, indice) => etiquetaDestino(indice, destinosFicticios)),
+      'Oferta',
+    ];
+    const cuerpo = costos.map((fila, indiceFila) => [
+      etiquetaOrigen(indiceFila, origenesFicticios),
+      ...fila.map(formatearNumeroTransporte),
+      formatearNumeroTransporte(oferta[indiceFila]),
+    ]);
+    cuerpo.push(['Demanda', ...demanda.map(formatearNumeroTransporte), '']);
+
+    autoTable(doc, {
+      head: [encabezado],
+      body: cuerpo,
+      startY: y,
+      theme: 'grid',
+      headStyles: { fillColor: azul, textColor: 255, halign: 'center', fontSize: 8 },
+      bodyStyles: { halign: 'center', valign: 'middle', fontSize: demanda.length > 7 ? 6.5 : 8 },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      margin: { left: margen, right: margen },
+    });
+    y = finalTabla() + 9;
+  };
+
+  const dibujarMatrizIteracion = (paso: Paso) => {
+    const penalizaciones = paso.penalizacionesVogel;
+    const encabezado = [
+      'Origen / Destino',
+      ...paso.demandaRestante.map((valor, indice) =>
+        `${etiquetaDestino(indice, destinosFicticios)}\nRestante: ${formatearNumeroTransporte(valor)}`
+      ),
+      'Oferta restante',
+      ...(penalizaciones ? ['Penalidad fila'] : []),
+    ];
+    const cuerpo: string[][] = paso.asignaciones.map((fila, indiceFila) => [
+      `${etiquetaOrigen(indiceFila, origenesFicticios)}\nRestante: ${formatearNumeroTransporte(paso.ofertaRestante[indiceFila])}`,
+      ...fila.map((valor, indiceColumna) =>
+        `Costo: ${formatearNumeroTransporte(costos[indiceFila]?.[indiceColumna] ?? 0)}\nAsign.: ${valor > 0 ? formatearNumeroTransporte(valor) : '-'}`
+      ),
+      formatearNumeroTransporte(paso.ofertaRestante[indiceFila]),
+      ...(penalizaciones ? [formatearPenalidadVogel(penalizaciones.filas[indiceFila])] : []),
+    ]);
+
+    if (penalizaciones) {
+      cuerpo.push(['Penalidad columna', ...penalizaciones.columnas.map(formatearPenalidadVogel), '', '']);
+    }
+    cuerpo.push([
+      'Demanda restante',
+      ...paso.demandaRestante.map(formatearNumeroTransporte),
+      '',
+      ...(penalizaciones ? [''] : []),
+    ]);
+
+    autoTable(doc, {
+      head: [encabezado],
+      body: cuerpo,
+      startY: y,
+      theme: 'grid',
+      rowPageBreak: 'avoid',
+      headStyles: { fillColor: azulClaro, textColor: 255, halign: 'center', valign: 'middle' },
+      bodyStyles: {
+        halign: 'center',
+        valign: 'middle',
+        fontSize: demanda.length > 7 ? 5.5 : 7,
+        cellPadding: demanda.length > 7 ? 1.2 : 1.8,
+      },
+      margin: { left: margen, right: margen },
+      didParseCell: (celda: DatosCeldaAutoTable) => {
+        if (celda.section !== 'body') return;
+        const fila = celda.row.index;
+        const columna = celda.column.index;
+        const esFilaMatriz = fila < paso.asignaciones.length;
+        const esColumnaMatriz = columna > 0 && columna <= paso.demandaRestante.length;
+        const filaPenalidad = penalizaciones ? paso.asignaciones.length : -1;
+        const filaDemanda = paso.asignaciones.length + (penalizaciones ? 1 : 0);
+
+        if (esFilaMatriz && (estaAgotado(paso.ofertaRestante[fila]) ||
+          (esColumnaMatriz && estaAgotado(paso.demandaRestante[columna - 1])))) {
+          celda.cell.styles.fillColor = [254, 243, 199];
+          celda.cell.styles.textColor = [120, 53, 15];
+        }
+        if (esFilaMatriz && esColumnaMatriz && paso.celdasResaltadas.some(
+          (item) => item.fila === fila && item.columna === columna - 1
+        )) {
+          celda.cell.styles.fillColor = [219, 234, 254];
+          celda.cell.styles.textColor = [30, 64, 175];
+          celda.cell.styles.fontStyle = 'bold';
+        }
+        if (penalizaciones && (fila === filaPenalidad || columna === encabezado.length - 1)) {
+          celda.cell.styles.fillColor = [238, 242, 255];
+          celda.cell.styles.textColor = indigo;
+        }
+        if (penalizaciones && fila === filaPenalidad &&
+          columna === penalizaciones.seleccionado.indice + 1 && penalizaciones.seleccionado.tipo === 'columna') {
+          celda.cell.styles.fillColor = [199, 210, 254];
+          celda.cell.styles.fontStyle = 'bold';
+        }
+        if (penalizaciones && esFilaMatriz && columna === encabezado.length - 1 &&
+          fila === penalizaciones.seleccionado.indice && penalizaciones.seleccionado.tipo === 'fila') {
+          celda.cell.styles.fillColor = [199, 210, 254];
+          celda.cell.styles.fontStyle = 'bold';
+        }
+        if (fila === filaDemanda) {
+          celda.cell.styles.fillColor = [220, 252, 231];
+          celda.cell.styles.textColor = [22, 101, 52];
+        }
+      },
+    });
+    y = finalTabla() + 8;
+  };
+
+  const dibujarMatrizResultado = (resultado: ResultadoComparacionPDF) => {
+    asegurarEspacio(35);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(11);
+    doc.setTextColor(31, 41, 55);
+    doc.text(`${resultado.metodo} - Costo total: $${formatearNumeroTransporte(resultado.costo)}`, margen, y);
+    y += 6;
+
+    const cuerpo = resultado.asignaciones.map((fila, indiceFila) => [
+      etiquetaOrigen(indiceFila, origenesFicticios),
+      ...fila.map((valor, indiceColumna) =>
+        `Costo: ${formatearNumeroTransporte(costos[indiceFila]?.[indiceColumna] ?? 0)}\nAsign.: ${valor > 0 ? formatearNumeroTransporte(valor) : '-'}`
+      ),
+      formatearNumeroTransporte(oferta[indiceFila]),
+    ]);
+    cuerpo.push(['Demanda', ...demanda.map(formatearNumeroTransporte), '']);
+
+    autoTable(doc, {
+      head: [[
+        'Origen / Destino',
+        ...demanda.map((_, indice) => etiquetaDestino(indice, destinosFicticios)),
+        'Oferta',
+      ]],
+      body: cuerpo,
+      startY: y,
+      theme: 'grid',
+      headStyles: { fillColor: azulClaro, textColor: 255, halign: 'center' },
+      bodyStyles: {
+        halign: 'center',
+        valign: 'middle',
+        fontSize: demanda.length > 7 ? 5.5 : 7,
+        cellPadding: 1.5,
+      },
+      alternateRowStyles: { fillColor: [248, 250, 252] },
+      margin: { left: margen, right: margen },
+    });
+    y = finalTabla() + 9;
+  };
+
+  const explicarMetodo = (nombreMetodo: string) => {
+    if (nombreMetodo === 'Esquina Noroeste') {
+      return 'Este método comienza en la esquina superior izquierda. En cada iteración asigna la mayor cantidad posible entre la oferta del origen y la demanda del destino; cuando una se agota, avanza a la siguiente fila o columna. No considera los costos para decidir el recorrido.';
+    }
+    if (nombreMetodo === 'Costo Mínimo') {
+      return 'Este método busca el menor costo unitario entre las filas y columnas que todavía tienen capacidad. Asigna allí la mayor cantidad posible, actualiza la oferta y la demanda restantes y repite la búsqueda hasta completar el problema.';
+    }
+    return 'Vogel calcula en cada fila y columna una penalidad: la diferencia entre sus dos costos disponibles más bajos. Selecciona la penalidad mayor y asigna en la casilla de menor costo asociada. Después actualiza capacidades y vuelve a calcular las penalidades.';
+  };
+
+  const construirCalculoCosto = (resultado: ResultadoComparacionPDF) => {
+    const terminos: string[] = [];
+    resultado.asignaciones.forEach((fila, indiceFila) => {
+      fila.forEach((cantidad, indiceColumna) => {
+        if (cantidad <= 0) return;
+        const costoUnitario = costos[indiceFila]?.[indiceColumna] ?? 0;
+        terminos.push(
+          `${formatearNumeroTransporte(cantidad)} x $${formatearNumeroTransporte(costoUnitario)}`
+        );
+      });
+    });
+    return `${terminos.join(' + ')} = $${formatearNumeroTransporte(resultado.costo)}`;
+  };
+
+  const dibujarDesarrolloComparacion = (resultado: ResultadoComparacionPDF, posicion: number) => {
+    asegurarEspacio(55);
+    tituloSeccion(`${posicion}. Cómo se resolvió con ${resultado.metodo}`);
+    parrafo(explicarMetodo(resultado.metodo));
+
+    if (resultado.pasos && resultado.pasos.length > 0) {
+      autoTable(doc, {
+        head: [['Iteración', 'Decisión tomada', 'Costo acumulado']],
+        body: resultado.pasos.map((paso, indice) => [
+          `${indice + 1}`,
+          paso.descripcion,
+          `$${formatearNumeroTransporte(paso.costo)}`,
+        ]),
+        startY: y,
+        theme: 'grid',
+        rowPageBreak: 'avoid',
+        showHead: 'everyPage',
+        headStyles: { fillColor: azulClaro, textColor: 255, halign: 'center', fontSize: 8 },
+        bodyStyles: { valign: 'middle', fontSize: 7.5, cellPadding: 1.7 },
+        columnStyles: {
+          0: { cellWidth: 20, halign: 'center' },
+          1: { cellWidth: 'auto' },
+          2: { cellWidth: 34, halign: 'center', fontStyle: 'bold' },
+        },
+        alternateRowStyles: { fillColor: [248, 250, 252] },
+        margin: { left: margen, right: margen, bottom: 14 },
+      });
+      y = finalTabla() + 7;
+    }
+
+    parrafo(
+      `Comprobación del costo total: ${construirCalculoCosto(resultado)}. Cada término multiplica las unidades asignadas por el costo unitario de su casilla.`,
+      [30, 64, 175]
+    );
+    parrafo('La siguiente matriz reúne las asignaciones finales producidas por estas decisiones:');
+    dibujarMatrizResultado(resultado);
+  };
+
+  doc.setFont('helvetica', 'bold');
   doc.setFontSize(20);
-  doc.setTextColor(...colorPrimario);
-  doc.text('Problema de Transporte', 15, posicionY);
+  doc.setTextColor(...azul);
+  doc.text('Problema de Transporte', margen, y);
+  y += 8;
+  doc.setFont('helvetica', 'normal');
+  doc.setFontSize(10);
+  doc.setTextColor(75, 85, 99);
+  doc.text(`Método seleccionado al resolver: ${metodo}`, margen, y);
+  y += 5;
+  doc.text(`Modo de solución: ${modo === 'paso-a-paso' ? 'Paso a paso' : 'Comparación de métodos'}`, margen, y);
+  y += 5;
+  doc.text(`Fecha: ${new Date().toLocaleString('es-EC')}`, margen, y);
+  y += 10;
 
-  posicionY += 10;
-  doc.setFontSize(11);
-  doc.setTextColor(80, 80, 80);
-  doc.text(`Método: ${metodo}`, 15, posicionY);
-  posicionY += 6;
-  doc.text(`Fecha: ${new Date().toLocaleDateString('es-ES')} - ${new Date().toLocaleTimeString('es-ES')}`, 15, posicionY);
-  posicionY += 12;
+  tituloSeccion('Datos de entrada');
+  dibujarTablaEntrada();
 
-  /* ===== SECCIÓN: DATOS DE ENTRADA ===== */
-  doc.setFontSize(13);
-  doc.setTextColor(...colorPrimario);
-  doc.text('Datos de Entrada', 15, posicionY);
-  posicionY += 8;
+  if (modo === 'paso-a-paso') {
+    tituloSeccion(`Desarrollo paso a paso - ${metodo}`);
+    parrafo(`${pasos.length} iteracion${pasos.length === 1 ? '' : 'es'} generada${pasos.length === 1 ? '' : 's'}. Cada matriz conserva las asignaciones acumuladas y muestra la oferta y demanda restante de ese momento.`);
+    pasos.forEach((paso, indice) => {
+      asegurarEspacio(45);
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(31, 41, 55);
+      doc.text(`Iteración ${indice + 1} - Costo acumulado: $${formatearNumeroTransporte(paso.costo)}`, margen, y);
+      y += 6;
+      parrafo(paso.descripcion);
+      parrafo(`Explicación: ${explicarPasoTransporte(paso, costos, origenesFicticios, destinosFicticios)}`, [30, 64, 175]);
+      dibujarMatrizIteracion(paso);
+    });
 
-  // Tabla de costos
-  const tablaCostos = [
-    ['Origen \\ Destino', ...demanda.map((_, i) => `D${i + 1}`), 'Oferta'],
-    ...costos.map((fila, idxFila) => [
-      `O${idxFila + 1}`,
-      ...fila,
-      oferta[idxFila],
-    ]),
-    ['Demanda', ...demanda, ''],
-  ];
+    tituloSeccion('Resultado final');
+    parrafo(`El método ${metodo} obtuvo un costo total de $${formatearNumeroTransporte(costoTotal)}.`);
+    dibujarMatrizResultado({ metodo, costo: costoTotal, asignaciones });
+  } else {
+    tituloSeccion('Comparación de métodos');
+    const ordenados = [...resultadosComparacion].sort((a, b) => a.costo - b.costo);
+    const mejorCosto = ordenados[0]?.costo ?? costoTotal;
+    autoTable(doc, {
+      head: [['Posición', 'Método', 'Costo total', 'Diferencia con el mejor', 'Resultado']],
+      body: ordenados.map((resultado, indice) => [
+        `${indice + 1}`,
+        resultado.metodo,
+        `$${formatearNumeroTransporte(resultado.costo)}`,
+        `$${formatearNumeroTransporte(resultado.costo - mejorCosto)}`,
+        indice === 0 ? 'Mejor método' : '',
+      ]),
+      startY: y,
+      theme: 'grid',
+      headStyles: { fillColor: azul, textColor: 255, halign: 'center' },
+      bodyStyles: { halign: 'center', fontSize: 8 },
+      didParseCell: (celda: DatosCeldaAutoTable) => {
+        if (celda.section === 'body' && celda.row.index === 0) {
+          celda.cell.styles.fillColor = [220, 252, 231];
+          celda.cell.styles.textColor = [21, 128, 61];
+          celda.cell.styles.fontStyle = 'bold';
+        }
+      },
+      margin: { left: margen, right: margen },
+    });
+    y = finalTabla() + 9;
+    parrafo(`Los tres métodos parten de la misma matriz, oferta y demanda. Como el objetivo es minimizar el costo de transporte, se considera mejor el resultado con el total más bajo: $${formatearNumeroTransporte(mejorCosto)}, obtenido por ${ordenados[0]?.metodo ?? metodo}.`);
+    ordenados.forEach((resultado, indice) => dibujarDesarrolloComparacion(resultado, indice + 1));
+  }
 
-  autoTable(doc, {
-    head: [tablaCostos[0]],
-    body: tablaCostos.slice(1),
-    startY: posicionY,
-    headStyles: {
-      fillColor: colorPrimario,
-      textColor: 255,
-      fontSize: 10,
-      halign: 'center',
-    },
-    bodyStyles: {
-      fontSize: 9,
-      halign: 'center',
-    },
-    alternateRowStyles: {
-      fillColor: [240, 240, 240],
-    },
-    margin: { left: 15, right: 15 },
-  });
+  const cantidadPaginas = doc.getNumberOfPages();
+  for (let pagina = 1; pagina <= cantidadPaginas; pagina++) {
+    doc.setPage(pagina);
+    doc.setDrawColor(209, 213, 219);
+    doc.line(margen, altoPagina - 10, anchoPagina - margen, altoPagina - 10);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(107, 114, 128);
+    doc.text('Sistema de Problemas de Transporte - ULEAM', margen, altoPagina - 5.5);
+    doc.text(`Página ${pagina} de ${cantidadPaginas}`, anchoPagina - margen, altoPagina - 5.5, { align: 'right' });
+  }
 
-  // Ajustar posición después de la tabla
-  posicionY = (doc as any).lastAutoTable.finalY + 12;
-
-  /* ===== SECCIÓN: ASIGNACIONES (SOLUCIÓN) ===== */
-  doc.setFontSize(13);
-  doc.setTextColor(...colorPrimario);
-  doc.text('Solución: Matriz de Asignaciones', 15, posicionY);
-  posicionY += 8;
-
-  const tablaAsignaciones = [
-    ['Origen \\ Destino', ...demanda.map((_, i) => `D${i + 1}`)],
-    ...asignaciones.map((fila, idxFila) => [
-      `O${idxFila + 1}`,
-      ...fila,
-    ]),
-  ];
-
-  autoTable(doc, {
-    head: [tablaAsignaciones[0]],
-    body: tablaAsignaciones.slice(1),
-    startY: posicionY,
-    headStyles: {
-      fillColor: colorSecundario,
-      textColor: 255,
-      fontSize: 10,
-      halign: 'center',
-    },
-    bodyStyles: {
-      fontSize: 9,
-      halign: 'center',
-    },
-    alternateRowStyles: {
-      fillColor: [240, 248, 255],
-    },
-    margin: { left: 15, right: 15 },
-  });
-
-  // Ajustar posición después de la tabla
-  posicionY = (doc as any).lastAutoTable.finalY + 12;
-
-  /* ===== SECCIÓN: COSTO TOTAL ===== */
-  doc.setFontSize(13);
-  doc.setTextColor(...colorPrimario);
-  doc.text('Resultado Final', 15, posicionY);
-  posicionY += 8;
-
-  doc.setFontSize(11);
-  doc.setTextColor(0, 0, 0);
-  doc.text(`Costo Total: $${costoTotal.toFixed(2)}`, 15, posicionY);
-  posicionY += 8;
-
-  // Línea separadora
-  doc.setDrawColor(...colorPrimario);
-  doc.line(15, posicionY, 195, posicionY);
-  posicionY += 8;
-
-  /* ===== NOTA AL PIE ===== */
-  doc.setFontSize(9);
-  doc.setTextColor(120, 120, 120);
-  doc.text('Generado por: Sistema de Problemas de Transporte - ULEAM', 15, posicionY);
-
-  // Descargar PDF
   doc.save(`${nombreArchivo}.pdf`);
-
-  console.log(`✓ Resultados exportados como PDF: ${nombreArchivo}.pdf`);
 }

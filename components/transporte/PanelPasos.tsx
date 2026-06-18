@@ -3,6 +3,14 @@
 import { CheckCircle2, ChevronDown, CircleHelp, Play } from 'lucide-react';
 import type { Paso } from '@/lib/algoritmos-transporte';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import {
+  estaAgotado,
+  etiquetaDestino,
+  etiquetaOrigen,
+  explicarPasoTransporte,
+  formatearNumeroTransporte,
+  formatearPenalidadVogel,
+} from '@/lib/presentacion-transporte';
 
 interface PropsPanelPasos {
   pasos: Paso[];
@@ -13,51 +21,12 @@ interface PropsPanelPasos {
   alCambiarPaso: (paso: number) => void;
 }
 
-function estaAgotado(valor: number) {
-  return Math.abs(valor) <= 1e-9;
-}
-
 function formatearNumero(valor: number) {
-  return valor.toLocaleString('es-EC', { maximumFractionDigits: 2 });
+  return formatearNumeroTransporte(valor);
 }
 
 function formatearPenalidad(penalidad: NonNullable<Paso['penalizacionesVogel']>['filas'][number]) {
-  if (!penalidad) return '-';
-  return `${formatearNumero(penalidad.minuendo)} - ${formatearNumero(penalidad.sustraendo)} = ${formatearNumero(penalidad.resultado)}`;
-}
-
-function etiquetaOrigen(indice: number, origenesFicticios: number[]) {
-  return `O${indice + 1}${origenesFicticios.includes(indice) ? ' F' : ''}`;
-}
-
-function etiquetaDestino(indice: number, destinosFicticios: number[]) {
-  return `D${indice + 1}${destinosFicticios.includes(indice) ? ' F' : ''}`;
-}
-
-function explicarPaso(paso: Paso, costos: number[][], origenesFicticios: number[], destinosFicticios: number[]) {
-  const celda = paso.celdasResaltadas[0];
-  if (!celda) {
-    return 'En este paso se actualiza el estado de la matriz. Revisa las ofertas y demandas restantes para ver que filas o columnas ya quedaron cerradas.';
-  }
-
-  const asignacion = paso.asignaciones[celda.fila]?.[celda.columna] ?? 0;
-  const costo = costos[celda.fila]?.[celda.columna] ?? 0;
-  const origen = etiquetaOrigen(celda.fila, origenesFicticios);
-  const destino = etiquetaDestino(celda.columna, destinosFicticios);
-  const filaCerrada = estaAgotado(paso.ofertaRestante[celda.fila]);
-  const columnaCerrada = estaAgotado(paso.demandaRestante[celda.columna]);
-  const esFicticio = origenesFicticios.includes(celda.fila) || destinosFicticios.includes(celda.columna);
-  const cierre = [
-    filaCerrada ? `${origen} queda sin oferta restante` : null,
-    columnaCerrada ? `${destino} queda sin demanda restante` : null,
-  ].filter(Boolean).join(' y ');
-
-  return [
-    `Se asignan ${formatearNumero(asignacion)} unidades desde ${origen} hacia ${destino}.`,
-    `El costo usado en esa casilla es ${formatearNumero(costo)}, por eso este paso suma ${formatearNumero(asignacion * costo)} al costo acumulado.`,
-    cierre ? `Despues de asignar, ${cierre}. Las filas o columnas cerradas aparecen con fondo suave y tachado.` : 'Despues de asignar todavia queda oferta y demanda en esa fila o columna.',
-    esFicticio ? 'La etiqueta F indica una fila o columna ficticia creada por el balanceo. Si recibe unidades con costo 0, solo representa sobrante o faltante para cuadrar el modelo.' : null,
-  ].filter(Boolean).join(' ');
+  return formatearPenalidadVogel(penalidad);
 }
 
 export function PanelPasos({
@@ -113,7 +82,7 @@ export function PanelPasos({
             .map((valor, idx) => (estaAgotado(valor) ? etiquetaDestino(idx, destinosFicticios) : null))
             .filter(Boolean)
             .join(', ');
-          const explicacion = explicarPaso(paso, costos, origenesFicticios, destinosFicticios);
+          const explicacion = explicarPasoTransporte(paso, costos, origenesFicticios, destinosFicticios);
 
           return (
             <details
@@ -174,6 +143,12 @@ export function PanelPasos({
                     <div className="mt-2 text-sm text-slate-700">{destinosAgotados || 'Ninguno'}</div>
                   </div>
                 </div>
+
+                {penalizaciones && (
+                  <div className="rounded-lg border border-indigo-200 bg-indigo-50 px-4 py-3 text-sm leading-relaxed text-indigo-900">
+                    Las penalidades corresponden al inicio de la iteración y son las utilizadas para elegir la fila o columna de mayor penalidad. La oferta y demanda restantes ya reflejan el resultado posterior a la asignación.
+                  </div>
+                )}
 
                 <div className="overflow-x-auto rounded-xl border border-border">
                   <table className="table-base min-w-[720px]">

@@ -51,12 +51,14 @@ import {
 
 // Funciones de gestión de matrices
 import { exportarResultadosPDF } from '@/lib/gestionMatrices';
+import type { DatosResultadosPDF } from '@/lib/gestionMatrices';
 
 // Componentes UI de shadcn
 import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogFooter,
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
@@ -91,6 +93,7 @@ export default function PaginaPrincipal() {
   const [asignaciones, setAsignaciones] = useState<number[][]>([]);
   const [costoTotal, setCostoTotal] = useState<number>(0);
   const [resultadosComparacion, setResultadosComparacion] = useState<{metodo: string; costo: number; asignaciones: number[][]}[]>([]);
+  const [ultimaSolucion, setUltimaSolucion] = useState<DatosResultadosPDF | null>(null);
 
   // UI: modales y paneles
   const [mostrarAyuda, setMostrarAyuda] = useState(false);
@@ -98,6 +101,9 @@ export default function PaginaPrincipal() {
   const [historial, setHistorial] = useState<EntradaHistorial[]>([]);
   const [erroresValidacion, setErroresValidacion] = useState<string[]>([]);
   const [mostrarModalValidacion, setMostrarModalValidacion] = useState(false);
+  const [mostrarModalExportacion, setMostrarModalExportacion] = useState(false);
+  const [nombreArchivoPDF, setNombreArchivoPDF] = useState('resultado-transporte');
+  const [errorNombrePDF, setErrorNombrePDF] = useState('');
 
   /* ===================================================================
      FUNCIONES AUXILIARES
@@ -183,6 +189,11 @@ export default function PaginaPrincipal() {
       })));
     }
   }, []);
+
+  // Una edicion de los datos invalida la solucion exportable anterior.
+  useEffect(() => {
+    setUltimaSolucion(null);
+  }, [costos, oferta, demanda]);
 
   /* ===================================================================
      MANEJADORES DE EVENTOS
@@ -467,17 +478,38 @@ export default function PaginaPrincipal() {
   /**
    * Exporta los resultados actuales a un archivo PDF
    */
+  const abrirExportacionPDF = () => {
+    if (!ultimaSolucion) return;
+    setNombreArchivoPDF(ultimaSolucion.nombreArchivo ?? 'resultado-transporte');
+    setErrorNombrePDF('');
+    setMostrarModalExportacion(true);
+  };
+
+  const sanitizarNombrePDF = (nombre: string) => nombre
+    .trim()
+    .replace(/\.pdf$/i, '')
+    .replace(/[<>:"/\\|?*\u0000-\u001F]/g, '-')
+    .replace(/-+/g, '-')
+    .replace(/\s*-\s*/g, '-')
+    .replace(/\s+/g, ' ')
+    .slice(0, 120)
+    .replace(/[.\s-]+$/g, '');
+
   const exportarResultados = async () => {
+    if (!ultimaSolucion) return;
+
+    const nombreLimpio = sanitizarNombrePDF(nombreArchivoPDF);
+    if (!nombreLimpio) {
+      setErrorNombrePDF('Escribe un nombre válido para el archivo.');
+      return;
+    }
+
     try {
-      await exportarResultadosPDF(
-        costos,
-        oferta,
-        demanda,
-        asignaciones,
-        costoTotal,
-        obtenerNombreMetodo(),
-        'resultado-transporte'
-      );
+      await exportarResultadosPDF({
+        ...ultimaSolucion,
+        nombreArchivo: nombreLimpio,
+      });
+      setMostrarModalExportacion(false);
     } catch (error) {
       setErroresValidacion([
         `Error al exportar PDF: ${error instanceof Error ? error.message : 'Error desconocido'}`,
@@ -531,6 +563,19 @@ export default function PaginaPrincipal() {
         setCostoTotal(resultado.costoTotal);
         setPasoActual(0);
         setResultadosComparacion([]);
+        setUltimaSolucion({
+          costos: costos.map((fila) => [...fila]),
+          oferta: [...oferta],
+          demanda: [...demanda],
+          asignaciones: resultado.asignaciones.map((fila) => [...fila]),
+          costoTotal: resultado.costoTotal,
+          metodo: nombreMetodo,
+          modo: 'paso-a-paso',
+          pasos: resultado.pasos,
+          origenesFicticios: [...origenesFicticios],
+          destinosFicticios: [...destinosFicticios],
+          nombreArchivo: `resultado-${metodoSeleccionado}-paso-a-paso`,
+        });
         guardarEnHistorial(nombreMetodo, 'Paso a paso', resultado.costoTotal, resultado.asignaciones);
       } else {
         // Modo comparación: resolver con los tres métodos
@@ -538,11 +583,12 @@ export default function PaginaPrincipal() {
         const resultadoCostoMinimo = costoMinimo(costos, oferta, demanda);
         const resultadoVogel = aproximacionVogel(costos, oferta, demanda);
 
-        setResultadosComparacion([
-          { metodo: 'Esquina Noroeste', costo: resultadoNoroeste.costoTotal, asignaciones: resultadoNoroeste.asignaciones },
-          { metodo: 'Costo Mínimo', costo: resultadoCostoMinimo.costoTotal, asignaciones: resultadoCostoMinimo.asignaciones },
-          { metodo: 'Aproximación de Vogel', costo: resultadoVogel.costoTotal, asignaciones: resultadoVogel.asignaciones },
-        ]);
+        const comparacion = [
+          { metodo: 'Esquina Noroeste', costo: resultadoNoroeste.costoTotal, asignaciones: resultadoNoroeste.asignaciones, pasos: resultadoNoroeste.pasos },
+          { metodo: 'Costo Mínimo', costo: resultadoCostoMinimo.costoTotal, asignaciones: resultadoCostoMinimo.asignaciones, pasos: resultadoCostoMinimo.pasos },
+          { metodo: 'Aproximación de Vogel', costo: resultadoVogel.costoTotal, asignaciones: resultadoVogel.asignaciones, pasos: resultadoVogel.pasos },
+        ];
+        setResultadosComparacion(comparacion);
 
         // Seleccionar el mejor resultado
         const mejor = [resultadoNoroeste, resultadoCostoMinimo, resultadoVogel].sort((a, b) => a.costoTotal - b.costoTotal)[0];
@@ -552,6 +598,19 @@ export default function PaginaPrincipal() {
 
         const mejorNombreMetodo = mejor === resultadoNoroeste ? 'Esquina Noroeste' : 
                                   mejor === resultadoCostoMinimo ? 'Costo Mínimo' : 'Aproximación de Vogel';
+        setUltimaSolucion({
+          costos: costos.map((fila) => [...fila]),
+          oferta: [...oferta],
+          demanda: [...demanda],
+          asignaciones: mejor.asignaciones.map((fila) => [...fila]),
+          costoTotal: mejor.costoTotal,
+          metodo: obtenerNombreMetodo(),
+          modo: 'comparacion',
+          resultadosComparacion: comparacion,
+          origenesFicticios: [...origenesFicticios],
+          destinosFicticios: [...destinosFicticios],
+          nombreArchivo: 'resultado-comparacion-metodos',
+        });
         guardarEnHistorial(mejorNombreMetodo, 'Comparación', mejor.costoTotal, mejor.asignaciones);
       }
     } catch (error) {
@@ -675,15 +734,15 @@ export default function PaginaPrincipal() {
                 <RotateCcw className="w-4 h-4" />
                 Reiniciar
               </button>
-              {/* {costoTotal > 0 && (
+              {ultimaSolucion && (
                 <button
-                  onClick={exportarResultados}
+                  onClick={abrirExportacionPDF}
                   className="btn btn-success"
                 >
                   <Download className="w-4 h-4" />
                   Exportar
                 </button>
-              )} */}
+              )}
             </div>
           </div>
         </header>
@@ -807,6 +866,66 @@ export default function PaginaPrincipal() {
         
         {/* Modal de ayuda */}
         <ModalAyuda estaAbierto={mostrarAyuda} alCerrar={() => setMostrarAyuda(false)} />
+
+        {/* Modal para personalizar el nombre del PDF */}
+        <Dialog open={mostrarModalExportacion} onOpenChange={setMostrarModalExportacion}>
+          <DialogContent className="sm:max-w-md border-blue-200 bg-card">
+            <form
+              onSubmit={(evento) => {
+                evento.preventDefault();
+                void exportarResultados();
+              }}
+            >
+              <DialogHeader>
+                <DialogTitle>Guardar resultados en PDF</DialogTitle>
+                <DialogDescription>
+                  Puedes cambiar el nombre antes de descargar. La extensión .pdf se añade automáticamente.
+                </DialogDescription>
+              </DialogHeader>
+
+              <div className="py-5">
+                <label htmlFor="nombre-pdf" className="mb-2 block text-sm font-medium text-foreground">
+                  Nombre del archivo
+                </label>
+                <div className="flex items-center gap-2">
+                  <input
+                    id="nombre-pdf"
+                    value={nombreArchivoPDF}
+                    onChange={(evento) => {
+                      setNombreArchivoPDF(evento.target.value);
+                      setErrorNombrePDF('');
+                    }}
+                    className="input-base flex-1"
+                    maxLength={124}
+                    autoFocus
+                    aria-invalid={Boolean(errorNombrePDF)}
+                    aria-describedby={errorNombrePDF ? 'error-nombre-pdf' : undefined}
+                  />
+                  <span className="text-sm text-muted-foreground">.pdf</span>
+                </div>
+                {errorNombrePDF && (
+                  <p id="error-nombre-pdf" className="mt-2 text-sm text-destructive">
+                    {errorNombrePDF}
+                  </p>
+                )}
+              </div>
+
+              <DialogFooter>
+                <button
+                  type="button"
+                  className="btn btn-muted"
+                  onClick={() => setMostrarModalExportacion(false)}
+                >
+                  Cancelar
+                </button>
+                <button type="submit" className="btn btn-success">
+                  <Download className="h-4 w-4" />
+                  Descargar PDF
+                </button>
+              </DialogFooter>
+            </form>
+          </DialogContent>
+        </Dialog>
         
         {/* Modal de errores de validación */}
         <Dialog open={mostrarModalValidacion} onOpenChange={setMostrarModalValidacion}>

@@ -718,7 +718,7 @@ export default function PaginaPrincipal() {
                 <HelpCircle className="w-4 h-4" />
                 Ayuda
               </button>
-              <button
+             <button
                 id="historial-btn"
                 onClick={() => setMostrarHistorial(!mostrarHistorial)}
                 className="btn btn-secondary"
@@ -734,15 +734,7 @@ export default function PaginaPrincipal() {
                 <RotateCcw className="w-4 h-4" />
                 Reiniciar
               </button>
-              {ultimaSolucion && (
-                <button
-                  onClick={abrirExportacionPDF}
-                  className="btn btn-success"
-                >
-                  <Download className="w-4 h-4" />
-                  Exportar
-                </button>
-              )}
+
             </div>
           </div>
         </header>
@@ -759,7 +751,34 @@ export default function PaginaPrincipal() {
 
             {/* Tabla de costos y capacidades */}
             <section className="card p-6 md:p-7">
-              <h2 className="text-lg font-medium mb-4 text-foreground">Tabla de Costos y Capacidades</h2>
+              <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-4">
+                
+                <h2 className="text-lg font-medium text-foreground">
+                  Tabla de Costos y Capacidades
+                </h2>
+
+                <div className="flex flex-wrap gap-2">
+                  <BotonesExportarImportar
+                    costos={costos}
+                    oferta={oferta}
+                    demanda={demanda}
+                    alImportar={manejarImportarMatrices}
+                    nombreArchivo="matriz-transporte"
+                  />
+
+                  {ultimaSolucion && (
+                    <button
+                      onClick={abrirExportacionPDF}
+                      className="btn btn-success"
+                    >
+                      <Download className="w-4 h-4" />
+                      Exportar
+                    </button>
+                  )}
+                </div>
+
+              </div>
+
               <TablaCostos
                 costos={costos}
                 oferta={oferta}
@@ -777,7 +796,10 @@ export default function PaginaPrincipal() {
                 puedeAgregarColumna={puedeAgregarColumna}
                 limiteFilas={limitesMetodo.maxFilas}
                 limiteColumnas={limitesMetodo.maxColumnas}
-                celdasResaltadas={celdasResaltadas.map(c => ({ fila: c.fila, columna: c.columna }))}
+                celdasResaltadas={celdasResaltadas.map(c => ({
+                  fila: c.fila,
+                  columna: c.columna,
+                }))}
                 asignaciones={asignacionesActuales}
                 origenesFicticios={origenesFicticios}
                 destinosFicticios={destinosFicticios}
@@ -785,17 +807,6 @@ export default function PaginaPrincipal() {
               />
             </section>
 
-            {/* Exportar e importar matrices */}
-            <section className="card p-6 md:p-7">
-              <h2 className="text-lg font-medium mb-4 text-foreground">Gestión de Matrices</h2>
-              <BotonesExportarImportar
-                costos={costos}
-                oferta={oferta}
-                demanda={demanda}
-                alImportar={manejarImportarMatrices}
-                nombreArchivo="matriz-transporte"
-              />
-            </section>
           </div>
 
           {/* Columna derecha: controles y panel lateral */}

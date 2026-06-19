@@ -718,14 +718,14 @@ export default function PaginaPrincipal() {
                 <HelpCircle className="w-4 h-4" />
                 Ayuda
               </button>
-             <button
+             {/* <button
                 id="historial-btn"
                 onClick={() => setMostrarHistorial(!mostrarHistorial)}
                 className="btn btn-secondary"
               >
                 <HistoryIcon className="w-4 h-4" />
                 Historial
-              </button>
+              </button> */}
               <button
                 id="reiniciar-btn"
                 onClick={reiniciar}

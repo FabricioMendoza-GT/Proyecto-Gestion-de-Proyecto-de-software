@@ -7,6 +7,33 @@ export default function Footer() {
   const [panelAbierto, setPanelAbierto] = useState<PanelInfo>(null)
   const cerrar = () => setPanelAbierto(null)
 
+  const contactos = [
+    {
+      nombre: 'Fabricio Mendoza',
+      tipo: 'correo',
+      href: 'mailto:studentmendoza3@gmail.com',
+      valor: 'studentmendoza3@gmail.com',
+    },
+    {
+      nombre: 'Carmen Valeriano',
+      tipo: 'Instagram',
+      href: 'https://www.instagram.com/Valerianocarmen_',
+      valor: '@Valerianocarmen_',
+    },
+    {
+      nombre: 'Amelia Salvatierra',
+      tipo: 'Instagram',
+      href: 'https://www.instagram.com/Ameliabv',
+      valor: '@Ameliabv',
+    },
+    {
+      nombre: 'Damarys Mero',
+      tipo: 'Instagram',
+      href: 'https://www.instagram.com/Mayitamero',
+      valor: '@Mayitamero',
+    },
+  ]
+
   const navegarFuncionalidad = (accion: string) => {
     window.dispatchEvent(new CustomEvent('transporte-footer-navegacion', { detail: { accion } }))
   }
@@ -195,10 +222,14 @@ export default function Footer() {
           <div>
             <h3>Colaboradores</h3>
             <ul>
-              <li>Fabricio Mendoza</li>
-              <li>Carmen Valeriano</li>
-              <li>Amelia Salvatierra</li>
-              <li>Damarys Mero</li>
+              {contactos.map((persona) => (
+                <li key={persona.nombre}>
+                  <strong>{persona.nombre}</strong>{' '}
+                  <a href={persona.href} target="_blank" rel="noreferrer noopener" className="site-footer__link-btn" style={{ display: 'inline', padding: 0, fontSize: 'inherit', fontWeight: 400 }}>
+                    ({persona.tipo}) {persona.valor}
+                  </a>
+                </li>
+              ))}
             </ul>
           </div>
         </div>

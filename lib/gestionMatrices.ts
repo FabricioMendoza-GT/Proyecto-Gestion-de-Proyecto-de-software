@@ -357,6 +357,7 @@ export async function exportarResultadosPDF(datos: DatosResultadosPDF): Promise<
   const anchoPagina = doc.internal.pageSize.getWidth();
   const altoPagina = doc.internal.pageSize.getHeight();
   const margen = 12;
+  const autoresProyecto = 'Autores: Fabricio Mendoza, Carmen Valeriano, Amelia Salvatierra y Damarys Mero';
   const azul: [number, number, number] = [37, 99, 235];
   const azulClaro: [number, number, number] = [59, 130, 246];
   const indigo: [number, number, number] = [79, 70, 229];
@@ -678,12 +679,15 @@ export async function exportarResultadosPDF(datos: DatosResultadosPDF): Promise<
   for (let pagina = 1; pagina <= cantidadPaginas; pagina++) {
     doc.setPage(pagina);
     doc.setDrawColor(209, 213, 219);
-    doc.line(margen, altoPagina - 10, anchoPagina - margen, altoPagina - 10);
+    doc.line(margen, altoPagina - 12, anchoPagina - margen, altoPagina - 12);
     doc.setFont('helvetica', 'normal');
-    doc.setFontSize(8);
+    doc.setFontSize(7);
     doc.setTextColor(107, 114, 128);
-    doc.text('Sistema de Problemas de Transporte - ULEAM', margen, altoPagina - 5.5);
-    doc.text(`Página ${pagina} de ${cantidadPaginas}`, anchoPagina - margen, altoPagina - 5.5, { align: 'right' });
+    doc.text('Sistema de Problemas de Transporte - ULEAM', margen, altoPagina - 8.2);
+    doc.setFontSize(6);
+    doc.text(autoresProyecto, margen, altoPagina - 4.8);
+    doc.setFontSize(7);
+    doc.text(`Página ${pagina} de ${cantidadPaginas}`, anchoPagina - margen, altoPagina - 8.2, { align: 'right' });
   }
 
   doc.save(`${nombreArchivo}.pdf`);
